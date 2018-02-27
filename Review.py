@@ -17,18 +17,19 @@ from nltk.stem.porter import PorterStemmer
 
 #from ds_voc.text_processing import TextProcessing
 
-raw_df = pd.read_csv("Reviews.csv")
+raw_df = pd.read_csv("/home/terrence/CODING/Python/MODELS/Reviews.csv")
 print(raw_df.shape)
 print(raw_df.head(3))
 # sample for speed
 raw_df2 = raw_df.sample(frac=0.1,  replace=False)
 print(raw_df2.shape)
 
+
 # grab review text
 #raw = list(raw_df2['Text'])
 raw = raw_df2['Text'] #TERRENCE
 raw = np.array(raw)
-print(raw)
+#print(raw)
 print(len(raw))
 
 
@@ -88,7 +89,7 @@ from bokeh.models import ColumnDataSource, LabelSet
 import IPython #TERRENCE
 
 def interactive_tsne(text_labels, tsne_array):
-    '''makes an interactive scatter plot with text labels for each point'''
+    #makes an interactive scatter plot with text labels for each point
 
     # define a dataframe to be used by bokeh context
     bokeh_df = pd.DataFrame(tsne_array, text_labels, columns=['x','y'])
@@ -123,16 +124,28 @@ interactive_tsne(model.wv.vocab.keys(), X_tsne)
 
 #+++++++++++++++++++++++++++++++++++++++++++++++ PRE-TRAINED word2vec ++++++++++++++++++++++++++++++++++++++++++++++++++++++
 #http://textminingonline.com/getting-started-with-word2vec-and-glove-in-python
-#By gensim word2vec module, you can also load the trained model by original c/c++ word2vec pakcage:
+##By gensim word2vec module, you can also load the trained model by original c/c++ word2vec pakcage:
+print("++++++++++++++++++++++++++++ pre-trained word2vec +++++++++++++++++++++++++++++++++++++++++++\n\n\n")
+corpus = [
+          'Text of the first document.',
+          'Text of the second document made longer.',
+          'Number three.',
+          'This is number four.',
+]
+## we need to pass splitted sentences to the model
+tokenized_sentences = [sentence.split() for sentence in corpus]
+from gensim.models import KeyedVectors #.load_word2vec_format
 
-#model_org = word2vec.Word2Vec.load_word2vec_format('vectors.bin', binary=True)
+##model_org = word2vec.Word2Vec.load_word2vec_format('vectors.bin', binary=True)
 
-#model_org.most_similar('frog')
+##model_org = KeyedVectors.load_word2vec_format('vectors.bin', binary=True)
+#model_org = KeyedVectors.load_word2vec_format(tokenized_sentences, binary=True)
+#print(model_org.most_similar('text'))
 
 
 #++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ glove +++++++++++++++++++++++++++++++++++++++++++++++++++++++
 #http://textminingonline.com/getting-started-with-word2vec-and-glove-in-python
-
+'''
 import itertools
 from gensim.models.word2vec import Text8Corpus
 from glove import Corpus, Glove
@@ -160,3 +173,32 @@ glove.most_similar('car', number=10)
 
  
 glove.most_similar('queen', number=10)
+'''
+
+
+#+++++++++++++++++++++++++++++++++++++++ toy glove ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+#https://github.com/maciejkula/glove-python
+
+from glove import Glove
+from glove import Corpus
+
+raw = list(np.array(raw_df2['Text']))
+
+corpus_model = Corpus()
+#corpus_model.fit(get_data(args.create), window=10)
+corpus_model.fit(raw, window=10)
+corpus_model.save('corpus.model')
+        
+print('Dict size: %s' % len(corpus_model.dictionary))
+print('Collocations: %s' % corpus_model.matrix.nnz)
+
+glove = Glove(no_components=100, learning_rate=0.05)
+glove.fit(corpus_model.matrix, epochs=int(args.train), no_threads=args.parallelism, verbose=True)
+glove.add_dictionary(corpus_model.dictionary)
+
+glove.save('glove.model')
+
+print(glove.most_similar('book', number=10))
+
+

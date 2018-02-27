@@ -16,10 +16,15 @@ corpus = [
           'This is number number number four.',
 ]
 # learn the vocabulary and store CountVectorizer sparse matrix in X
-#print(vectorizer.fit(corpus))
+#vectorizer.fit(corpus)
+#tokenized_sentences = [sentence.split() for sentence in corpus]
+#print(tokenized_sentences)
+
 X = vectorizer.fit_transform(corpus)
 
 print(X)
+print(X.toarray())
+
 # columns of X correspond to the result of this method
 T = vectorizer.get_feature_names() == (
     ['document', 'first', 'four', 'is', 'longer',
@@ -32,20 +37,14 @@ print(vectorizer.get_feature_names())
 X.toarray()
 print(X.toarray())
 
+
 #+++++++++++++++++++++++++++++++++++++++++++++++++++ TF-IDF +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 from sklearn.feature_extraction.text import TfidfTransformer
 # create tf-idf object
-transformer = TfidfTransformer(smooth_idf=False)
+transformer = TfidfTransformer(smooth_idf=True)
 # X can be obtained as X.toarray() from the previous snippet
-'''
-X = [[3, 0, 1],
-     [5, 0, 0],
-     [3, 0, 0],
-     [1, 0, 0],
-     [3, 2, 0],
-     [3, 0, 4]]
-'''
+
 # learn the vocabulary and store tf-idf sparse matrix in tfidf
 tfidf = transformer.fit_transform(X)
 print(tfidf)
@@ -86,12 +85,12 @@ X = model[model.wv.vocab]
 
 print(X.shape)
 print (model.most_similar('first'))
-print (model.most_similar('document'))
-print (model.most_similar('This'))
+#print (model.most_similar('document'))
+#print (model.most_similar('This'))
 #print (model.most_similar(['snack', 'protein'], negative=['supplement']))
 
 
-
+'''
 #+++++++++++++++++++++++++++++++++++++ word2vec - multi-word context +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 from gensim.models import word2vec
 corpus = [
@@ -120,8 +119,9 @@ corpus = [
 tokenized_sentences = [sentence.split() for sentence in corpus]
 model = word2vec.Word2Vec(tokenized_sentences, min_count=1)
 
+
 #++++++++++++++++++++++++++++++++++++++++++++++++ glove ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-'''
+
 import itertools
 from gensim.models.word2vec import Text8Corpus
 from glove import Corpus, Glove
@@ -134,8 +134,8 @@ glove = Glove(no_components=100, learning_rate=0.05)
 # fitting to the corpus and adding standard dictionary to the object
 glove.fit(corpus.matrix, epochs=30, no_threads=4, verbose=True)
 glove.add_dictionary(corpus.dictionary)
-'''
 
+'''
 
 #++++++++++++++++++++++++++++++++++++++++++++++++++ FastText ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 

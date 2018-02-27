@@ -32,6 +32,7 @@ y = sms.label_num
 print(X.shape)
 print(y.shape)
 
+
 #X is 1D currently because it will be passed to Vectorizer to become a 2D matrix
 #You must always have a 1D object so CountVectorizer can turn into a 2D object for the model to be built on
 
@@ -67,11 +68,12 @@ X_train_dtm = vect.fit_transform(X_train)
 
 # examine the document-term matrix
 X_train_dtm
+print(X_train_dtm)
 
 # 4. transform testing data (using fitted vocabulary) into a document-term matrix
 X_test_dtm = vect.transform(X_test)
 X_test_dtm
-
+print(X_test_dtm)
 # you can see that the number of columns, 7456, is the same as what we have learned above in X_train_dtm
 
 
@@ -93,7 +95,7 @@ y_pred_class = nb.predict(X_test_dtm)
 
 # calculate accuracy of class predictions
 from sklearn import metrics
-metrics.accuracy_score(y_test, y_pred_class)
+print(metrics.accuracy_score(y_test, y_pred_class))
 
 
 # examine class distribution
@@ -111,7 +113,8 @@ print('Manual null accuracy:',(1208 / (1208 + 185)))
 #In this case, we can see that our accuracy (0.9885) is higher than the null accuracy (0.8672)
 
 # print the confusion matrix
-metrics.confusion_matrix(y_test, y_pred_class)
+print(metrics.confusion_matrix(y_test, y_pred_class))
+
 
 #[TN FP 
 #FN TP]
@@ -121,6 +124,7 @@ X_test[y_pred_class > y_test]
 
 # alternative less elegant but easier to understand
 X_test[(y_pred_class==1) & (y_test==0)]
+
 
 # print message text for the false negatives (spam incorrectly classified as ham)
 
@@ -138,9 +142,41 @@ X_test[3132]
 # right C: probability class 1
 # we only need the right column 
 y_pred_prob = nb.predict_proba(X_test_dtm)[:, 1]
-y_pred_prob
+print(y_pred_prob)
+
 
 # Naive Bayes predicts very extreme probabilites, you should not take them at face value
 
 # calculate AUC
-metrics.roc_auc_score(y_test, y_pred_prob)
+print(metrics.roc_auc_score(y_test, y_pred_prob))
+
+
+print("++++++++++++++++++++++++++++++++++++++++++++ word2vec ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++")
+from gensim.models import word2vec
+#print(X)
+from nltk.corpus import stopwords
+
+#tokenized_sentences = [sentence.split() for sentence in X]
+tokenized_sentences = [sentence.split() for sentence in X if not sentence in stopwords.words('english')]
+print("\n")
+#print(tokenized_sentences)
+
+model = word2vec.Word2Vec(sentences=tokenized_sentences, # tokenized senteces, list of list of strings
+                 size=300,  # size of embedding vectors
+                 workers=8, # how many threads?
+                 min_count=1, # minimum frequency per token, filtering rare words
+                 sample=0.05, # weight of downsampling common words
+                 sg = 1, # should we use skip-gram? if 0, then cbow
+                 iter=5,
+                 hs = 0
+        )
+
+X = model[model.wv.vocab]
+
+print(X.shape)
+
+#print (model.most_similar('first'))
+print (model.most_similar('book'))
+#print (model.most_similar('This'))
+#print (model.most_similar(['snack', 'protein'], negative=['supplement']))
+
