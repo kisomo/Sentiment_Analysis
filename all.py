@@ -23,8 +23,9 @@ corpus = [
 X = vectorizer.fit_transform(corpus)
 
 print(X)
+print("\n\n")
 print(X.toarray())
-
+print("\n\n")
 # columns of X correspond to the result of this method
 T = vectorizer.get_feature_names() == (
     ['document', 'first', 'four', 'is', 'longer',
@@ -33,12 +34,13 @@ T = vectorizer.get_feature_names() == (
 
 print(T)
 print(vectorizer.get_feature_names())
+
 # retrieving the matrix in the numpy form
 X.toarray()
 print(X.toarray())
 
 
-#+++++++++++++++++++++++++++++++++++++++++++++++++++ TF-IDF +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+print("+++++++++++++++++++++++++++++++++++++++++ TF-IDF +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++")
 
 from sklearn.feature_extraction.text import TfidfTransformer
 # create tf-idf object
@@ -54,7 +56,7 @@ print(tfidf.toarray() )
 
 
 
-#+++++++++++++++++++++++++++++++++++++ word2vec - one word context +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+print("+++++++++++++++++++++++++++++++++++++ word2vec - one word context ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++")
 
 from gensim.models import word2vec
 corpus = [
@@ -67,8 +69,9 @@ corpus = [
 print(corpus)
 # we need to pass splitted sentences to the model
 tokenized_sentences = [sentence.split() for sentence in corpus]
-print("\n")
+print("\n\n")
 print(tokenized_sentences)
+
 #model = word2vec.Word2Vec(tokenized_sentences, min_count=1)
 
 model = word2vec.Word2Vec(sentences=tokenized_sentences, # tokenized senteces, list of list of strings
@@ -88,6 +91,7 @@ print (model.most_similar('first'))
 #print (model.most_similar('document'))
 #print (model.most_similar('This'))
 #print (model.most_similar(['snack', 'protein'], negative=['supplement']))
+
 
 
 '''
@@ -119,23 +123,28 @@ corpus = [
 tokenized_sentences = [sentence.split() for sentence in corpus]
 model = word2vec.Word2Vec(tokenized_sentences, min_count=1)
 
-
-#++++++++++++++++++++++++++++++++++++++++++++++++ glove ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+'''
+print("+++++++++++++++++++++++++++++++++++++++ glove ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++")
 
 import itertools
 from gensim.models.word2vec import Text8Corpus
 from glove import Corpus, Glove
+
 # sentences and corpus from standard library
-sentences = list(itertools.islice(Text8Corpus('text8'),None))
+#sentences = list(itertools.islice(Text8Corpus('text8'),None))
+tokenized_sentences = [sentence.split() for sentence in corpus]
 corpus = Corpus()
+
 # fitting the corpus with sentences and creating Glove object
-corpus.fit(sentences, window=10)
+corpus.fit(tokenized_sentences, window=10)
+
 glove = Glove(no_components=100, learning_rate=0.05)
 # fitting to the corpus and adding standard dictionary to the object
 glove.fit(corpus.matrix, epochs=30, no_threads=4, verbose=True)
 glove.add_dictionary(corpus.dictionary)
 
-'''
+
+
 
 #++++++++++++++++++++++++++++++++++++++++++++++++++ FastText ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 

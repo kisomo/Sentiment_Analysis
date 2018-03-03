@@ -19,7 +19,9 @@ from nltk.stem.porter import PorterStemmer
 
 raw_df = pd.read_csv("/home/terrence/CODING/Python/MODELS/Reviews.csv")
 print(raw_df.shape)
-print(raw_df.head(3))
+
+#print(raw_df.head(3))
+
 # sample for speed
 raw_df2 = raw_df.sample(frac=0.1,  replace=False)
 print(raw_df2.shape)
@@ -33,10 +35,7 @@ raw = np.array(raw)
 print(len(raw))
 
 
-
-
-
-#+++++++++++++++++++++++++++++++++++++++++ CountVectorizer ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+print("++++++++++++++++++++++++++++++++++++ CountVectorizer ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++")
 
 #http://www.ritchieng.com/machine-learning-multinomial-naive-bayes-vectorization/
 
@@ -54,7 +53,7 @@ sentences = vect.get_feature_names()
 from gensim.models import Word2Vec
 
 model = Word2Vec(sentences=sentences, # tokenized senteces, list of list of strings
-                 size=300,  # size of embedding vectors
+                 size=100,  # size of embedding vectors
                  workers=8, # how many threads?
                  min_count=20, # minimum frequency per token, filtering rare words
                  sample=0.05, # weight of downsampling common words
@@ -66,11 +65,10 @@ model = Word2Vec(sentences=sentences, # tokenized senteces, list of list of stri
 X = model[model.wv.vocab]
 
 print(X.shape)
-#print (model.most_similar('peanut'))
+#print (model.most_similar('zoos'))
 #print (model.most_similar('coffee'))
 #print (model.most_similar('spice'))
 #print (model.most_similar(['snack', 'protein'], negative=['supplement']))
-
 
 # visualize food data
 from sklearn.manifold import TSNE
@@ -122,45 +120,39 @@ def interactive_tsne(text_labels, tsne_array):
 
 interactive_tsne(model.wv.vocab.keys(), X_tsne)
 
-#+++++++++++++++++++++++++++++++++++++++++++++++ PRE-TRAINED word2vec ++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+print("++++++++++++++++++++++++++++++++++++++++++ PRE-TRAINED word2vec ++++++++++++++++++++++++++++++++++++++++++++++++++++++")
 #http://textminingonline.com/getting-started-with-word2vec-and-glove-in-python
 ##By gensim word2vec module, you can also load the trained model by original c/c++ word2vec pakcage:
 print("++++++++++++++++++++++++++++ pre-trained word2vec +++++++++++++++++++++++++++++++++++++++++++\n\n\n")
-corpus = [
-          'Text of the first document.',
-          'Text of the second document made longer.',
-          'Number three.',
-          'This is number four.',
-]
-## we need to pass splitted sentences to the model
-tokenized_sentences = [sentence.split() for sentence in corpus]
+
 from gensim.models import KeyedVectors #.load_word2vec_format
 
 ##model_org = word2vec.Word2Vec.load_word2vec_format('vectors.bin', binary=True)
 
 ##model_org = KeyedVectors.load_word2vec_format('vectors.bin', binary=True)
-#model_org = KeyedVectors.load_word2vec_format(tokenized_sentences, binary=True)
-#print(model_org.most_similar('text'))
+model_org = KeyedVectors.load_word2vec_format(sentences, binary=True)
+print(model_org.most_similar('muthoka', number = 3))
 
 
-#++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ glove +++++++++++++++++++++++++++++++++++++++++++++++++++++++
+print("++++++++++++++++++++++++++++++++++++++++++++++++ glove +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++")
 #http://textminingonline.com/getting-started-with-word2vec-and-glove-in-python
-'''
+
 import itertools
-from gensim.models.word2vec import Text8Corpus
+#from gensim.models.word2vec import Text8Corpus
 from glove import Corpus, Glove
-sentences = list(itertools.islice(Text8Corpus('text8'),None))
+#sentences = list(itertools.islice(Text8Corpus('text8'),None))
 corpus = Corpus()
 corpus.fit(sentences, window=10)
 glove = Glove(no_components=100, learning_rate=0.05)
  
-glove.fit(corpus.matrix, epochs=30, no_threads=4, verbose=True)
+glove.fit(corpus.matrix, epochs=5, no_threads=8, verbose=True)
 #Performing 30 training epochs with 4 threads
 
 glove.add_dictionary(corpus.dictionary)
  
-glove.most_similar('man')
-
+print(glove.most_similar('man', number=3))
+'''
 glove.most_similar('man', number=10)
 
  
@@ -173,11 +165,12 @@ glove.most_similar('car', number=10)
 
  
 glove.most_similar('queen', number=10)
-'''
 
+'''
 
 #+++++++++++++++++++++++++++++++++++++++ toy glove ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
+'''
 #https://github.com/maciejkula/glove-python
 
 from glove import Glove
@@ -202,3 +195,4 @@ glove.save('glove.model')
 print(glove.most_similar('book', number=10))
 
 
+'''
