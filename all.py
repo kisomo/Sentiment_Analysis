@@ -55,6 +55,8 @@ tfidf.toarray()
 print(tfidf.toarray() )     
 
 
+vectorizer = TfidfVectorizer(min_df=5, max_df = 0.8, sublinear_tf=True, use_idf =True, stop_words = 'english')
+
 
 print("+++++++++++++++++++++++++++++++++++++ word2vec - one word context ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++")
 
