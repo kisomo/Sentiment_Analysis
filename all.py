@@ -26,6 +26,7 @@ print(X)
 print("\n\n")
 print(X.toarray())
 print("\n\n")
+
 # columns of X correspond to the result of this method
 T = vectorizer.get_feature_names() == (
     ['document', 'first', 'four', 'is', 'longer',
@@ -44,7 +45,7 @@ print("+++++++++++++++++++++++++++++++++++++++++ TF-IDF ++++++++++++++++++++++++
 
 from sklearn.feature_extraction.text import TfidfTransformer
 # create tf-idf object
-transformer = TfidfTransformer(smooth_idf=True)
+transformer = TfidfTransformer(norm = 'l2', smooth_idf=True, sublinear_tf= False, use_idf =True )
 # X can be obtained as X.toarray() from the previous snippet
 
 # learn the vocabulary and store tf-idf sparse matrix in tfidf
@@ -55,9 +56,9 @@ tfidf.toarray()
 print(tfidf.toarray() )     
 
 
-vectorizer = TfidfVectorizer(min_df=5, max_df = 0.8, sublinear_tf=True, use_idf =True, stop_words = 'english')
+##vectorizer = TfidfVectorizer(min_df=5, max_df = 0.8, sublinear_tf=True, use_idf =True, stop_words = 'english')
 
-
+'''
 print("+++++++++++++++++++++++++++++++++++++ word2vec - one word context ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++")
 
 from gensim.models import word2vec
@@ -94,7 +95,7 @@ print (model.most_similar('first'))
 #print (model.most_similar('This'))
 #print (model.most_similar(['snack', 'protein'], negative=['supplement']))
 
-
+'''
 
 '''
 #+++++++++++++++++++++++++++++++++++++ word2vec - multi-word context +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -124,6 +125,8 @@ corpus = [
 # we need to pass splitted sentences to the model
 tokenized_sentences = [sentence.split() for sentence in corpus]
 model = word2vec.Word2Vec(tokenized_sentences, min_count=1)
+
+'''
 
 '''
 print("+++++++++++++++++++++++++++++++++++++++ glove ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++")
@@ -157,7 +160,7 @@ glove.add_dictionary(corpus.dictionary)
 
 
 #++++++++++++++++++++++++++++++++++++++++++ Poincare metric +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-
+'''
 
 
 
