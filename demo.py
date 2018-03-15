@@ -288,7 +288,7 @@ model = word2vec.Word2Vec(sentences=tokenized_sentences, # tokenized senteces, l
                  min_count=1, # minimum frequency per token, filtering rare words
                  sample=0.05, # weight of downsampling common words
                  sg = 1, # should we use skip-gram? if 0, then cbow
-                 iter=20,
+                 iter=10,
                  hs = 0
         )
 
@@ -307,3 +307,18 @@ print("\n")
 print(model.most_similar("purse"))
 #print (model.most_similar(['snack', 'protein'], negative=['supplement']))
 
+
+
+#++++++++++++++++++++++++++++++++++ spark +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+#nb.fit(X_train_dtm, y_train)
+#y_pred_class = nb.predict(X_test_dtm)
+
+
+from pyspark.ml.classification import LogisticRegression
+lr = LogisticRegression(maxIter=100)
+lrModel = lr.fit(X_train_dtm)
+predictions = lrModel.transform(X_test_dm)
+from pyspark.ml.evaluation import BinaryClassificationEvaluator
+evaluator = BinaryClassificationEvaluator(rawPredictionCol="rawPrediction")
+print(evaluator.evaluate(predictions))
