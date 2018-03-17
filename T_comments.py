@@ -84,14 +84,19 @@ import os
 
 from sklearn.feature_extraction.text import CountVectorizer, TfidfVectorizer
 
-train = pd.read_csv('train.csv')
-test = pd.read_csv('test.csv')
+train = pd.read_csv('C:\\Users\\y9ck3\\GITHUB\\Sentiment_Analysis\\train.csv')
+#train = pd.read_csv('train.csv')
+
+test = pd.read_csv('C:\\Users\\y9ck3\\GITHUB\\Sentiment_Analysis\\test.csv')
+#test = pd.read_csv('test.csv')
+
 #subm1 = pd.read_csv('sample_submission.csv')
 #subm2 = pd.read_csv('sample_submission.csv')
 #subm3 = pd.read_csv('sample_submission.csv')
 #subm4 = pd.read_csv('sample_submission.csv')
 #subm5 = pd.read_csv('sample_submission.csv')
-subm6 = pd.read_csv('sample_submission.csv')
+subm6 = pd.read_csv('C:\\Users\y9ck3\\GITHUB\\Sentiment_Analysis\\sample_submission.csv')
+#subm6 = pd.read_csv('sample_submission.csv')
 
 #subm5 = pd.read_csv('../input/sample_submission.csv')
 
@@ -131,7 +136,7 @@ print(label_cols[4])
 print(label_cols[5])
 #print(label_cols[6])
 
-'''
+
 n = train.shape[0]
 vec = TfidfVectorizer(ngram_range=(1,2), tokenizer=tokenize,
                min_df=3, max_df=0.9, strip_accents='unicode', use_idf=1,
@@ -154,8 +159,36 @@ preds4 = np.zeros((len(test), len(label_cols)))
 preds5 = np.zeros((len(test), len(label_cols)))
 preds6 = np.zeros((len(test), len(label_cols)))
 
+trn_term_doc.to_csv('X.csv', index=False, float_format = "%.8f")
 
-df_0 = pd.concat([pd.DataFrame(trn_term_doc), pd.DataFrame(train[0])], axis=1)
+train[0].to_csv('y0.csv', index=False, float_format = "%.8f")
+train[1].to_csv('y1.csv', index=False, float_format = "%.8f")
+train[2].to_csv('y2.csv', index=False, float_format = "%.8f")
+train[3].to_csv('y3.csv', index=False, float_format = "%.8f")
+train[4].to_csv('y4.csv', index=False, float_format = "%.8f")
+train[5].to_csv('y5.csv', index=False, float_format = "%.8f")
+
+
+'''
+_length = trn_term_doc.shape[0]
+_width = len(label_cols)+1
+print(_length)
+print(_width)
+
+
+df_0 = np.zeros((_length, _width))
+df_0 = pd.DataFrame(df_0)
+trn = pd.DataFrame(trn_term_doc)
+trn0 = pd.DataFrame(train[0])
+
+df_0 = pd.concat([trn, trn0], axis =1)
+#df_0[:,:-1] = np.array(trn_term_doc)
+#df_0[:,-1] = train[0]
+#print(df_0[:3,:])
+
+print(df_0.shape)
+print(df_0.head(2))
+
 df_0.to_csv('mission_0.csv', index=False, float_format = "%.8f")
 '''
 
@@ -309,7 +342,7 @@ for i, j in enumerate(label_cols):
 
 submid6 = pd.DataFrame({'id': subm6["id"]})
 submission_nn = pd.concat([submid6, pd.DataFrame(preds6, columns = label_cols)], axis=1)
-submission_nn.to_csv('submission_nn.csv', index=False, float_format="%.8f")
+submission_nn.to_csv('C:\\Users\\y9ck3\\GITHUB\\Sentiment_Analysis\\submission_nn.csv', index=False, float_format="%.8f")
 
 #preds5 = np.average((preds1,preds2,preds3,preds4), axis = 0)
 
@@ -318,6 +351,8 @@ submission_nn.to_csv('submission_nn.csv', index=False, float_format="%.8f")
 #submission_en = pd.concat([submid5, pd.DataFrame(preds5, columns = label_cols)], axis=1)
 #submission_en.to_csv('submission_en.csv', index=False, float_format="%.8f")
 '''
+
+
 print("+++++++++++++++++++++++++++++++++++++++++++ spark +++++++++++++++++++++++++++++++++++++++++++++++++++++++")
 
 #http://people.duke.edu/~ccc14/sta-663-2016/21D_Spark_MLib.html
@@ -339,7 +374,8 @@ from pyspark.mllib.regression import LabeledPoint
 from pyspark.mllib.clustering import GaussianMixture
 from pyspark.mllib.classification import LogisticRegressionWithLBFGS, LogisticRegressionModel
 
-df = (sqlc.read.format('com.databricks.spark.csv').options(header='false', inferschema='true').load('data/sonar.all-data.txt'))
+#df = (sqlc.read.format('com.databricks.spark.csv').options(header='false', inferschema='true').load('data/sonar.all-data.txt'))
+df = (sqlc.read.format('com.databricks.spark.csv').options(header='false', inferschema='true').load('C:\\Users\\y9ck3\GITHUB\\Sentiment_Analysis\\train.csv'))
 
 df.printSchema()
 
@@ -453,8 +489,6 @@ GridSearchCV(cv=None, error_score='raise',
        pre_dispatch='2*n_jobs', refit=True,
        sc=<pyspark.context.SparkContext object at 0x11ad38668>,
        scoring=None, verbose=0)
-
-
 
 
 
