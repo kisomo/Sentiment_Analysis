@@ -41,7 +41,7 @@ sc = spark.sparkContext
 
 
 train = sc.textFile("train.csv")
-test = sc.textFile("test.csv")
+est = sc.textFile("test.csv")
 subm = sc.textFile("sample_submission.csv")
 
 print(type(train))
@@ -84,19 +84,19 @@ import os
 
 from sklearn.feature_extraction.text import CountVectorizer, TfidfVectorizer
 
-train = pd.read_csv('C:\\Users\\y9ck3\\GITHUB\\Sentiment_Analysis\\train.csv')
-#train = pd.read_csv('train.csv')
+#train = pd.read_csv('C:\\Users\\y9ck3\\GITHUB\\Sentiment_Analysis\\train.csv')
+train = pd.read_csv('train.csv')
 
-test = pd.read_csv('C:\\Users\\y9ck3\\GITHUB\\Sentiment_Analysis\\test.csv')
-#test = pd.read_csv('test.csv')
+#test = pd.read_csv('C:\\Users\\y9ck3\\GITHUB\\Sentiment_Analysis\\test.csv')
+test = pd.read_csv('test.csv')
 
 #subm1 = pd.read_csv('sample_submission.csv')
 #subm2 = pd.read_csv('sample_submission.csv')
 #subm3 = pd.read_csv('sample_submission.csv')
 #subm4 = pd.read_csv('sample_submission.csv')
 #subm5 = pd.read_csv('sample_submission.csv')
-subm6 = pd.read_csv('C:\\Users\y9ck3\\GITHUB\\Sentiment_Analysis\\sample_submission.csv')
-#subm6 = pd.read_csv('sample_submission.csv')
+#subm6 = pd.read_csv('C:\\Users\y9ck3\\GITHUB\\Sentiment_Analysis\\sample_submission.csv')
+subm6 = pd.read_csv('sample_submission.csv')
 
 #subm5 = pd.read_csv('../input/sample_submission.csv')
 
@@ -240,25 +240,25 @@ print(preds1[:3,:])
 submid1 = pd.DataFrame({'id': subm1["id"]})
 submission_m2 = pd.concat([submid1, pd.DataFrame(preds1, columns = label_cols)], axis=1)
 submission_m2.to_csv('submission_m2.csv', index=False, float_format="%.8f")
+'''
+from sklearn.linear_model import SGDClassifier
+#lr = SGDClassifier(loss='log',penalty='elasticnet',alpha = 0.5, l1_ratio = 0.7, max_iter=500, n_jobs =-1)
 
-lr = LogisticRegression()
+lr = LogisticRegression(penalty = 'l1',solver = 'saga', max_iter = 1000, n_jobs = -1)
 for i, j in enumerate(label_cols):
     print('fit', j)
-     #m,r = get_mdl(train[j])
     m_lr= lr.fit(trn_term_doc, train[j])
-    #preds[:,i] = m.predict_proba(test_x.multiply(r))[:,1]
     preds2[:,i] = m_lr.predict_proba(test_term_doc)[:,1]
-    #preds2[:,i] = m_lr.predict(test_term_doc)
 
 
 print(preds2[:3,:])
 
 submid2 = pd.DataFrame({'id': subm2["id"]})
-submission_l = pd.concat([submid2, pd.DataFrame(preds2, columns = label_cols)], axis=1)
-submission_l.to_csv('submission_l.csv', index=False, float_format="%.8f")
-'''
+submission_lr = pd.concat([submid2, pd.DataFrame(preds2, columns = label_cols)], axis=1)
+submission_lr.to_csv('submission_lr.csv', index=False, float_format="%.8f")
 
 '''
+
 clf = GradientBoostingClassifier()
 for i, j in enumerate(label_cols):
     print('fit', j)
@@ -275,7 +275,7 @@ submission_g = pd.concat([submid3, pd.DataFrame(preds3, columns = label_cols)], 
 submission_g.to_csv('submission_g.csv', index=False, float_format="%.8f")
 '''
 
-
+'''
 from sklearn.svm import SVC
 svc = SVC(kernel = 'rbf', C = 1, gamma = 1)
 for i, j in enumerate(label_cols):
@@ -291,6 +291,9 @@ print(preds4[:3,:])
 submid4 = pd.DataFrame({'id': subm4["id"]})
 submission_sv = pd.concat([submid4, pd.DataFrame(preds4, columns = label_cols)], axis=1)
 submission_sv.to_csv('submission_sv.csv', index=False, float_format="%.8f")
+'''
+
+
 
 '''
 from sklearn.neighbors.nearest_centroid import NearestCentroid
@@ -321,6 +324,7 @@ preds4[:,i] = m_gmm.predict_proba(test_term_doc)[:,1]
 '''
 
 
+'''
 #preds_3_1 = np.average((preds1,preds2,preds3), axis = 0)
 
 
@@ -350,9 +354,11 @@ submission_nn.to_csv('C:\\Users\\y9ck3\\GITHUB\\Sentiment_Analysis\\submission_n
 #submid5 = pd.DataFrame({'id': subm5["id"]})
 #submission_en = pd.concat([submid5, pd.DataFrame(preds5, columns = label_cols)], axis=1)
 #submission_en.to_csv('submission_en.csv', index=False, float_format="%.8f")
+'''
 
 
 
+'''
 print("+++++++++++++++++++++++++++++++++++++++++++ spark +++++++++++++++++++++++++++++++++++++++++++++++++++++++")
 
 #http://people.duke.edu/~ccc14/sta-663-2016/21D_Spark_MLib.html
@@ -395,12 +401,12 @@ df = df.withColumnRenamed("C1","label")
 #model = standardizer.fit(output)
 #output = model.transform(output)
 
-'''
-df = df.withColumnRenamed("C0","comment_text")
+
+#df = df.withColumnRenamed("C0","comment_text")
 df = df.withColumnRenamed("C1","label")
 assembler = VectorAssembler(inputCols="comment_text", outputCol="features")
 output = assembler.transform(df)
-'''
+
 
 from pyspark.ml import Pipeline
 from pyspark.ml.classification import LogisticRegression
@@ -550,5 +556,13 @@ GridSearchCV(cv=None, error_score='raise',
 
 
 sc.stop()
+'''
+
+
+
+
+
+
+
 
 
