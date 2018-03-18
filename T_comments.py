@@ -145,12 +145,10 @@ trn_term_doc = vec.fit_transform(train[COMMENT])
 test_term_doc = vec.transform(test[COMMENT])
 
 
-
 from sklearn.naive_bayes import MultinomialNB
 from sklearn.linear_model import LogisticRegression
 from sklearn.ensemble import GradientBoostingClassifier
 from sklearn.neural_network import MLPClassifier
-
 
 preds1 = np.zeros((len(test), len(label_cols)))
 preds2 = np.zeros((len(test), len(label_cols)))
@@ -159,6 +157,7 @@ preds4 = np.zeros((len(test), len(label_cols)))
 preds5 = np.zeros((len(test), len(label_cols)))
 preds6 = np.zeros((len(test), len(label_cols)))
 
+'''
 trn_term_doc.to_csv('X.csv', index=False, float_format = "%.8f")
 
 train[0].to_csv('y0.csv', index=False, float_format = "%.8f")
@@ -169,7 +168,7 @@ train[4].to_csv('y4.csv', index=False, float_format = "%.8f")
 train[5].to_csv('y5.csv', index=False, float_format = "%.8f")
 
 
-'''
+
 _length = trn_term_doc.shape[0]
 _width = len(label_cols)+1
 print(_length)
@@ -276,7 +275,7 @@ submission_g = pd.concat([submid3, pd.DataFrame(preds3, columns = label_cols)], 
 submission_g.to_csv('submission_g.csv', index=False, float_format="%.8f")
 '''
 
-'''
+
 from sklearn.svm import SVC
 svc = SVC(kernel = 'rbf', C = 1, gamma = 1)
 for i, j in enumerate(label_cols):
@@ -293,6 +292,7 @@ submid4 = pd.DataFrame({'id': subm4["id"]})
 submission_sv = pd.concat([submid4, pd.DataFrame(preds4, columns = label_cols)], axis=1)
 submission_sv.to_csv('submission_sv.csv', index=False, float_format="%.8f")
 
+'''
 from sklearn.neighbors.nearest_centroid import NearestCentroid
 clf_nc = NearestCentroid()
 
@@ -320,7 +320,7 @@ preds4[:,i] = m_gmm.predict_proba(test_term_doc)[:,1]
     #preds4[:,i] = m_svc.predict(test_term_doc)
 '''
 
-'''
+
 #preds_3_1 = np.average((preds1,preds2,preds3), axis = 0)
 
 
@@ -350,7 +350,7 @@ submission_nn.to_csv('C:\\Users\\y9ck3\\GITHUB\\Sentiment_Analysis\\submission_n
 #submid5 = pd.DataFrame({'id': subm5["id"]})
 #submission_en = pd.concat([submid5, pd.DataFrame(preds5, columns = label_cols)], axis=1)
 #submission_en.to_csv('submission_en.csv', index=False, float_format="%.8f")
-'''
+
 
 
 print("+++++++++++++++++++++++++++++++++++++++++++ spark +++++++++++++++++++++++++++++++++++++++++++++++++++++++")
@@ -379,18 +379,74 @@ df = (sqlc.read.format('com.databricks.spark.csv').options(header='false', infer
 
 df.printSchema()
 
-df = df.withColumnRenamed("C60","label")
+#df.select("_c0").show()
 
-assembler = VectorAssembler(
-    inputCols=['C%d' % i for i in range(60)],
-    outputCol="features")
+df = df.withColumnRenamed("C0","comment_text")
+df = df.withColumnRenamed("C1","label")
+
+#assembler = VectorAssembler(
+#    inputCols=['C%d' % i for i in range(60)],
+#    outputCol="features")
+#output = assembler.transform(df)
+
+#standardizer = StandardScaler(withMean=True, withStd=True,
+#                              inputCol='features',
+#                              outputCol='std_features')
+#model = standardizer.fit(output)
+#output = model.transform(output)
+
+'''
+df = df.withColumnRenamed("C0","comment_text")
+df = df.withColumnRenamed("C1","label")
+assembler = VectorAssembler(inputCols="comment_text", outputCol="features")
 output = assembler.transform(df)
+'''
 
-standardizer = StandardScaler(withMean=True, withStd=True,
-                              inputCol='features',
-                              outputCol='std_features')
-model = standardizer.fit(output)
-output = model.transform(output)
+from pyspark.ml import Pipeline
+from pyspark.ml.classification import LogisticRegression
+from pyspark.ml.feature import HashingTF, Tokenizer
+from pyspark.ml.evaluation import BinaryClassificationEvaluator
+
+
+
+#articles = sc.parallelize(loadData("data/","reuters"))
+#articles_filtered = articles.filter(lambda article:"topics" in article and "body" in article )
+#bodies_and_topics = article_filtered.map(lambda article: [article["body"], float("earn" in article["topics"])])
+#data = bodies_and_topics.toDF(["text"],["label"])
+
+data = df.select("_c0", "_c1")
+data = data.toDF(["text"],["label"])
+#data = df.select("comment_text", "label")
+
+trainset, testset = data.randomSplit([0.8,0.2])
+
+#tokenizer = Tokenizer(inputCol="text", outputCol = "words")
+tokenizer = Tokenizer(inputCol="_c0", outputCol = "words")
+hasher = HashingTF(inputCol = tokenizer.getOutputCol(),outputCol = "features")
+clf = LogisticRegression(maxIter = 10, regParam = 0.01)
+pipeline = Pipeline(stages = [tokenizer, hasher, clf])
+
+model = pipeline.fit(trainset)
+
+train_pred = model.transform(trainset)
+test_pred = model.transform(testset)
+
+evaluator = BinaryClassificationEvaluator()
+
+train_accuracy = evaluator.evaluate(train_pred)
+print("Train set accuracy: {:.3g}".format(train_accuracy))
+test_accuracy = evaluator.evaluate(test_pred)
+print("Test set accuracy: {:.3g}".format(test_accuracy))
+
+
+
+
+
+
+
+
+
+
 
 indexer = StringIndexer(inputCol="label", outputCol="label_idx")
 indexed = indexer.fit(output).transform(output)
