@@ -241,17 +241,26 @@ submid1 = pd.DataFrame({'id': subm1["id"]})
 submission_m2 = pd.concat([submid1, pd.DataFrame(preds1, columns = label_cols)], axis=1)
 submission_m2.to_csv('submission_m2.csv', index=False, float_format="%.8f")
 '''
-from sklearn.linear_model import SGDClassifier
+
+from sklearn.preprocessing import MinMaxScaler, MaxAbsScaler
+#scaler = MinMaxScaler()
+scaler = MaxAbsScaler()
+X_train_scaled = scaler.fit_transform(trn_term_doc)
+
+#X_test_scaled = scaler.transform(X_test)
+
+#from sklearn.linear_model import SGDClassifier
 #lr = SGDClassifier(loss='log',penalty='elasticnet',alpha = 0.5, l1_ratio = 0.7, max_iter=500, n_jobs =-1)
 
 lr = LogisticRegression(penalty = 'l1',solver = 'saga', max_iter = 1000, n_jobs = -1)
 for i, j in enumerate(label_cols):
     print('fit', j)
-    m_lr= lr.fit(trn_term_doc, train[j])
-    preds2[:,i] = m_lr.predict_proba(test_term_doc)[:,1]
+    m_lr= lr.fit(X_train_scaled, train[j])
+    preds2[:,i] = m_lr.predict_proba(scaler.transform(test_term_doc))[:,1]
 
 
 print(preds2[:3,:])
+
 
 submid2 = pd.DataFrame({'id': subm2["id"]})
 submission_lr = pd.concat([submid2, pd.DataFrame(preds2, columns = label_cols)], axis=1)
