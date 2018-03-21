@@ -91,7 +91,7 @@ train = pd.read_csv('train.csv')
 test = pd.read_csv('test.csv')
 
 #subm1 = pd.read_csv('sample_submission.csv')
-#subm2 = pd.read_csv('sample_submission.csv')
+subm2 = pd.read_csv('sample_submission.csv')
 #subm3 = pd.read_csv('sample_submission.csv')
 #subm4 = pd.read_csv('sample_submission.csv')
 #subm5 = pd.read_csv('sample_submission.csv')
@@ -156,6 +156,8 @@ preds3 = np.zeros((len(test), len(label_cols)))
 preds4 = np.zeros((len(test), len(label_cols)))
 preds5 = np.zeros((len(test), len(label_cols)))
 preds6 = np.zeros((len(test), len(label_cols)))
+
+
 
 '''
 trn_term_doc.to_csv('X.csv', index=False, float_format = "%.8f")
@@ -242,6 +244,7 @@ submission_m2 = pd.concat([submid1, pd.DataFrame(preds1, columns = label_cols)],
 submission_m2.to_csv('submission_m2.csv', index=False, float_format="%.8f")
 '''
 
+
 from sklearn.preprocessing import MinMaxScaler, MaxAbsScaler
 #scaler = MinMaxScaler()
 scaler = MaxAbsScaler()
@@ -261,10 +264,12 @@ for i, j in enumerate(label_cols):
 
 print(preds2[:3,:])
 
-
+#subm2 = pd.read_csv('sample_submission.csv')
 submid2 = pd.DataFrame({'id': subm2["id"]})
 submission_lr = pd.concat([submid2, pd.DataFrame(preds2, columns = label_cols)], axis=1)
 submission_lr.to_csv('submission_lr.csv', index=False, float_format="%.8f")
+
+
 
 '''
 

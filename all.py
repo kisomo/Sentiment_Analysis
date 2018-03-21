@@ -6,6 +6,7 @@ import numpy as np
 
 #++++++++++++++++++++++++++++++++++ CountVectorizing +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
+
 from sklearn.feature_extraction.text import CountVectorizer
 # create CountVectorizer object
 vectorizer = CountVectorizer()
@@ -41,6 +42,7 @@ X.toarray()
 print(X.toarray())
 
 
+'''
 print("+++++++++++++++++++++++++++++++++++++++++ TF-IDF +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++")
 
 from sklearn.feature_extraction.text import TfidfTransformer
@@ -57,6 +59,10 @@ print(tfidf.toarray() )
 
 
 ##vectorizer = TfidfVectorizer(min_df=5, max_df = 0.8, sublinear_tf=True, use_idf =True, stop_words = 'english')
+
+'''
+
+
 
 '''
 print("+++++++++++++++++++++++++++++++++++++ word2vec - one word context ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++")
@@ -158,9 +164,89 @@ glove.add_dictionary(corpus.dictionary)
 
 
 
+'''
+print("++++++++++++++++++++++++++++++++++++ Poincare metric ++++++++++++++++++++++++++++++++++++++++++++++++++++")
 
-#++++++++++++++++++++++++++++++++++++++++++ Poincare metric +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+#https://nbviewer.jupyter.org/github/RaRe-Technologies/gensim/blob/develop/docs/notebooks/Poincare%20Tutorial.ipynb
+
+'''
+#%load_ext autoreload   
+#%autoreload 2
+
+import os
+import logging
+import numpy as np
+
+from gensim.models.poincare import PoincareModel, PoincareKeyedVectors, PoincareRelations
+
+logging.basicConfig(level=logging.INFO)
+
+#poincare_directory = os.path.join(os.getcwd(), 'docs', 'notebooks', 'poincare')
+#data_directory = os.path.join(poincare_directory, 'data')
+#wordnet_mammal_file = os.path.join(data_directory, 'wordnet_mammal_hypernyms.tsv')
+
+datafile = ['document', 'first', 'four', 'is', 'longer',
+     'made', 'number', 'of', 'second', 'text',
+     'the', 'this', 'three']
+
+
+#model = PoincareModel(train_data=[('node.1', 'node.2'), ('node.2', 'node.3')])
+
+#relations = PoincareRelations(file_path=wordnet_mammal_file, delimiter='\t')
+relations = PoincareRelations(file_path= "/home/terrence/CODING/Python/MODELS/Reviews.csv", delimiter=',')
+#model = PoincareModel(train_data=relations)
+
+model = PoincareModel(train_data=relations, size=2, burn_in=0)
+model.train(epochs=1, print_every=500)
+
 '''
 
+#https://radimrehurek.com/gensim/models/poincare.html
+
+#Initialize and train a model from a list:
+
+from gensim.models.poincare import PoincareModel
+relations = [('kangaroo', 'marsupial'), ('kangaroo', 'mammal'), ('gib', 'cat')]
+model = PoincareModel(relations, negative=2)
+model.train(epochs=50)
+
+#model.difference_in_hierarchy('mammal.n.01', 'dog.n.01')
+
+#model.difference_in_hierarchy('dog.n.01', 'mammal.n.01')
+
+#model.distance('mammal.n.01', 'carnivore.n.01')
+
+#model.distances('mammal.n.01', ['carnivore.n.01', 'dog.n.01'])
+
+#model.distances('mammal.n.01')
+
+#vectors.most_similar('lion.n.01')
+
+#model.norm('mammal.n.01')
+
+#model.similarity('mammal.n.01', 'carnivore.n.01')
+
+#trained_model.word_vec('office')
+
+#model.words_closer_than('carnivore.n.01', 'mammal.n.01')
 
 
+
+
+
+'''
+#Initialize and train a model from a file containing one relation per line:
+
+from gensim.models.poincare import PoincareModel, PoincareRelations
+from gensim.test.utils import datapath
+file_path = datapath('poincare_hypernyms.tsv')
+model = PoincareModel(PoincareRelations(file_path), negative=2)
+model.train(epochs=50)
+'''
+
+'''
+from gensim.models.poincare import PoincareModel
+relations = [('kangaroo', 'marsupial'), ('kangaroo', 'mammal'), ('gib', 'cat')]
+model = PoincareModel(relations, negative=2)
+model.train(epochs=50)
+'''
