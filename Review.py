@@ -23,7 +23,7 @@ print(raw_df.shape)
 #print(raw_df.head(3))
 
 # sample for speed
-raw_df2 = raw_df.sample(frac=0.1,  replace=False)
+raw_df2 = raw_df.sample(frac=0.5,  replace=False)
 print(raw_df2.shape)
 
 
@@ -65,7 +65,8 @@ model = Word2Vec(sentences=sentences, # tokenized senteces, list of list of stri
 X = model[model.wv.vocab]
 
 print(X.shape)
-#print (model.most_similar('zoos'))
+print (model.most_similar('buy'))
+'''
 #print (model.most_similar('coffee'))
 #print (model.most_similar('spice'))
 #print (model.most_similar(['snack', 'protein'], negative=['supplement']))
@@ -120,6 +121,12 @@ def interactive_tsne(text_labels, tsne_array):
 
 interactive_tsne(model.wv.vocab.keys(), X_tsne)
 
+'''
+
+
+
+
+'''
 
 print("++++++++++++++++++++++++++++++++++++++++++ PRE-TRAINED word2vec ++++++++++++++++++++++++++++++++++++++++++++++++++++++")
 #http://textminingonline.com/getting-started-with-word2vec-and-glove-in-python
@@ -134,7 +141,11 @@ from gensim.models import KeyedVectors #.load_word2vec_format
 model_org = KeyedVectors.load_word2vec_format(sentences, binary=True)
 print(model_org.most_similar('muthoka', number = 3))
 
+'''
 
+
+
+'''
 print("++++++++++++++++++++++++++++++++++++++++++++++++ glove +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++")
 #http://textminingonline.com/getting-started-with-word2vec-and-glove-in-python
 
@@ -152,7 +163,7 @@ glove.fit(corpus.matrix, epochs=5, no_threads=8, verbose=True)
 glove.add_dictionary(corpus.dictionary)
  
 print(glove.most_similar('man', number=3))
-'''
+
 glove.most_similar('man', number=10)
 
  
