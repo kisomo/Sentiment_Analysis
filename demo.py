@@ -296,8 +296,9 @@ X = model[model.wv.vocab]
 
 print(X.shape)
 print("\n")
-print (model.most_similar('ex'))
+print (model.most_similar('clothes'))
 print("\n")
+'''
 print (model.most_similar('open'))
 print("\n")
 print (model.most_similar('book'))
@@ -307,8 +308,10 @@ print("\n")
 print(model.most_similar("purse"))
 #print (model.most_similar(['snack', 'protein'], negative=['supplement']))
 
+'''
 
 
+'''
 #++++++++++++++++++++++++++++++++++ spark +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 #nb.fit(X_train_dtm, y_train)
@@ -322,3 +325,4 @@ predictions = lrModel.transform(X_test_dm)
 from pyspark.ml.evaluation import BinaryClassificationEvaluator
 evaluator = BinaryClassificationEvaluator(rawPredictionCol="rawPrediction")
 print(evaluator.evaluate(predictions))
+'''
