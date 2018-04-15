@@ -296,7 +296,7 @@ X = model[model.wv.vocab]
 
 print(X.shape)
 print("\n")
-print (model.most_similar('clothes'))
+print (model.most_similar('education'))
 print("\n")
 '''
 print (model.most_similar('open'))
