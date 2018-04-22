@@ -121,7 +121,9 @@ plot_confusion_matrix(cm, classes = ['FAKE','REAL'])
 
 import numpy as np
 
-with open("glove.6B.50d.txt", "rb") as lines:
+
+#with open("glove.6B.50d.txt", "rb") as lines:
+with open("/home/terrence/CODING/Python/MODELS/glove.6B.50d.txt", "rb") as lines:
     w2v = {line.split()[0]: np.array(map(float, line.split()[1:]))
            for line in lines}
 
@@ -223,8 +225,44 @@ etree_w2v_tfidf = Pipeline([
 
 
 
-#Toxic comments
+#+++++++++++++++++++++++++++++++++++++++++++++++++++ Toxic comments +++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
 #https://www.kaggle.com/emannueloc/using-word-embeddings-with-gensim
+
+import pandas as pd
+df = pd.read_csv('train.csv')
+corpus_text = '\n'.join(df[:5000]['comment_text'])
+sentences = corpus_text.split('\n')
+sentences = [line.lower().split(' ') for line in sentences]
+
+def clean(s):
+    return [w.strip(',."!?:;()\'') for w in s]
+sentences = [clean(s) for s in sentences if len(s) > 0]
+
+from gensim.models import Word2Vec
+
+model = Word2Vec(sentences, size=100, window=5, min_count=3, workers=4)
+
+vectors = model.wv
+del model
+
+
+vectors['good']
+
+print(vectors.similarity('you', 'your'))
+print(vectors.similarity('you', 'internet'))
+
+
+vectors.most_similar('i')
+
+
+
+
+
+
+
+
+
 
 
 
