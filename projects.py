@@ -274,10 +274,6 @@ vectors.most_similar('i')
 
 
 
-
-
-
-
 #pre-trained glove
 #https://stackoverflow.com/questions/37793118/load-pretrained-glove-vectors-in-python
 
