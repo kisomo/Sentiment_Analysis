@@ -50,6 +50,14 @@ print(y.shape)
 print(y[:10])
 
 
+import numpy as np
+with open(GLOVE_6B_50D_PATH, "rb") as lines:
+    wvec = {line.split()[0].decode(encoding): np.array(line.split()[1:],dtype=np.float32)
+               for line in lines}
+
+
+
+
 
 
 
