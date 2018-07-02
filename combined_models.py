@@ -8,7 +8,7 @@ import numpy as np
 #https://github.com/nadbordrozd/blog_stuff/blob/master/classification_w2v/benchmarking_python3.ipynb
 
 from tabulate import tabulate
-%matplotlib inline
+#%matplotlib inline
 import matplotlib.pyplot as plt
 import seaborn as sns
 import pandas as pd
@@ -27,13 +27,27 @@ from sklearn.cross_validation import StratifiedShuffleSplit
 
 # TRAIN_SET_PATH = "20ng-no-stop.txt"
 # TRAIN_SET_PATH = "r52-all-terms.txt"
-TRAIN_SET_PATH = "r8-no-stop.txt"
+TRAIN_SET_PATH = "/home/terrence/CODING/Python/MODELS/r8-no-stop.txt"
 
-GLOVE_6B_50D_PATH = "glove.6B.50d.txt"
-GLOVE_840B_300D_PATH = "glove.840B.300d.txt"
+GLOVE_6B_50D_PATH = "/home/terrence/CODING/Python/MODELS/glove.6B.50d.txt"
+GLOVE_840B_300D_PATH = "/home/terrence/CODING/Python/MODELS/glove.6B.300d.txt"
 encoding="utf-8"
 
-
+X, y = [], []
+with open(TRAIN_SET_PATH, "r") as infile:
+    for line in infile:
+        label, text = line.split("\t")
+        # texts are already tokenized, just split on space
+        # in a real case we would use e.g. spaCy for tokenization
+        # and maybe remove stopwords etc.
+        X.append(text.split())
+        y.append(label)
+X, y = np.array(X), np.array(y)
+print ("total examples %s" % len(y))
+print(X.shape)
+print(y.shape)
+#print(X[:2])
+print(y[:10])
 
 
 
