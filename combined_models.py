@@ -54,6 +54,8 @@ print(X[:1])
 print(y[:20])
 
 
+
+
 with open(GLOVE_6B_50D_PATH, "rb") as lines:
     wvec = {line.split()[0].decode(encoding): np.array(line.split()[1:],dtype=np.float32)
     #w2v = {line.split()[0].decode(encoding): np.array(line.split()[1:],dtype=np.float32)
