@@ -53,7 +53,7 @@ print(y.shape)
 print(X[:1])
 print(y[:20])
 
-'''
+
 with open(GLOVE_6B_50D_PATH, "rb") as lines:
     wvec = {line.split()[0].decode(encoding): np.array(line.split()[1:],dtype=np.float32)
     #w2v = {line.split()[0].decode(encoding): np.array(line.split()[1:],dtype=np.float32)
@@ -70,7 +70,7 @@ print(type(wvec))
 import struct 
 
 glove_small = {}
-all_words = set(w for words in X1 for w in words)
+all_words = set(w for words in X for w in words)
 with open(GLOVE_6B_50D_PATH, "rb") as infile:
     for line in infile:
         parts = line.split()
@@ -92,7 +92,7 @@ with open(GLOVE_840B_300D_PATH, "rb") as infile:
 
 ## train word2vec on all the texts - both training and test set
 ## we're not using test labels, just texts so this is fine
-model = Word2Vec(X1, size=100, window=5, min_count=5, workers=2)
+model = Word2Vec(X, size=100, window=5, min_count=5, workers=2)
 w2v = {w: vec for w, vec in zip(model.wv.index2word, model.wv.syn0)}
 
 print(len(all_words))
@@ -118,14 +118,14 @@ class MeanEmbeddingVectorizer(object):
         else:
             self.dim=0
             
-    def fit(self, X1, y1):
+    def fit(self, X, y):
         return self 
 
-    def transform(self, X1):
+    def transform(self, X):
         return np.array([
             np.mean([self.word2vec[w] for w in words if w in self.word2vec] 
                     or [np.zeros(self.dim)], axis=0)
-            for words in X1
+            for words in X
         ])
 
   
@@ -139,9 +139,9 @@ class TfidfEmbeddingVectorizer(object):
         else:
             self.dim=0
         
-    def fit(self, X1, y1):
+    def fit(self, X, y):
         tfidf = TfidfVectorizer(analyzer=lambda x: x)
-        tfidf.fit(X1)
+        tfidf.fit(X)
         # if a word was never seen - it must be at least as infrequent
         # as any of the known words - so the default idf is the max of 
         # known idf's
@@ -152,12 +152,12 @@ class TfidfEmbeddingVectorizer(object):
     
         return self
     
-    def transform(self, X1):
+    def transform(self, X):
         return np.array([
                 np.mean([self.word2vec[w] * self.word2weight[w]
                          for w in words if w in self.word2vec] or
                         [np.zeros(self.dim)], axis=0)
-                for words in X1
+                for words in X
             ])
 
 
@@ -178,7 +178,6 @@ etree_glove_big_tfidf = Pipeline([("glove vectorizer", TfidfEmbeddingVectorizer(
 #                        ("extra trees", ExtraTreesClassifier(n_estimators=200))])
 
 
-
 all_models = [
     ("mult_nb", mult_nb),
     ("mult_nb_tfidf", mult_nb_tfidf),
@@ -196,7 +195,7 @@ all_models = [
 ]
 
 
-unsorted_scores = [(name, cross_val_score(model, X1, y1, cv=5,scoring ='recall').mean()) for name, model in all_models]
+unsorted_scores = [(name, cross_val_score(model, X, y, cv=5).mean()) for name, model in all_models]
 scores = sorted(unsorted_scores, key=lambda x: -x[1])
 
 
@@ -206,16 +205,16 @@ print (tabulate(scores, floatfmt=".4f", headers=("model", 'score')))
 plt.figure(figsize=(15, 6))
 sns.barplot(x=[name for name, _ in scores], y=[score for _, score in scores])
 plt.show()
-'''
 
 
+
 '''
-def benchmark(model, X1, y1, n):
-    test_size = 1 - (n / float(len(y1)))
+def benchmark(model, X, y, n):
+    test_size = 1 - (n / float(len(y)))
     scores = []
-    for train, test in StratifiedShuffleSplit(y1, n_iter=5, test_size=test_size):
-        X_train, X_test = X1[train], X1[test]
-        y_train, y_test = y1[train], y1[test]
+    for train, test in StratifiedShuffleSplit(y, n_iter=5, test_size=test_size):
+        X_train, X_test = X[train], X[test]
+        y_train, y_test = y[train], y[test]
         scores.append(accuracy_score(model.fit(X_train, y_train).predict(X_test), y_test))
     return np.mean(scores)
 
@@ -225,7 +224,7 @@ table = []
 for name, model in all_models:
     for n in train_sizes:
         table.append({'model': name, 
-                      'accuracy': benchmark(model, X1, y1, n), 
+                      'accuracy': benchmark(model, X, y, n), 
                       'train_size': n})
 df = pd.DataFrame(table)
 
