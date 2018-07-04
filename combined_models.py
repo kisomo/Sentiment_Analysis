@@ -297,15 +297,13 @@ scores = sorted(unsorted_scores, key=lambda x: -x[1])
 
 print (tabulate(scores, floatfmt=".4f", headers=("model", 'score')))
 
-'''
+
 plt.figure(figsize=(15, 6))
 sns.barplot(x=[name for name, _ in scores], y=[score for _, score in scores])
 plt.show()
 
-'''
 
 
-'''
 def benchmark(model, X, y, n):
     test_size = 1 - (n / float(len(y)))
     scores = []
@@ -327,7 +325,7 @@ df = pd.DataFrame(table)
 
 plt.figure(figsize=(15, 6))
 fig = sns.pointplot(x='train_size', y='accuracy', hue='model', 
-                    data=df[df.model.map(lambda x: x in ["mult_nb", "svc_tfidf", "w2v_tfidf", 
+                    data=df[df.model.map(lambda x: x in ["mult_nb", "svc_tfidf",# "w2v_tfidf", 
                                                          "glove_small_tfidf", "glove_big_tfidf", 
                                                         ])])
 sns.set_context("notebook", font_scale=1.5)
@@ -335,8 +333,6 @@ fig.set(ylabel="accuracy")
 fig.set(xlabel="labeled training examples")
 fig.set(title="R8 benchmark")
 fig.set(ylabel="accuracy")
-'''
-
 
 
 
@@ -574,6 +570,42 @@ fig.set(ylabel="accuracy")
 '''
 
 
+#https://blog.keras.io/using-pre-trained-word-embeddings-in-a-keras-model.html
+'''
+from keras.preprocessing.text import Tokenizer
+from keras.preprocessing.sequence import pad_sequences
+
+tokenizer = Tokenizer(nb_words=MAX_NB_WORDS)
+tokenizer.fit_on_texts(texts)
+sequences = tokenizer.texts_to_sequences(texts)
+
+word_index = tokenizer.word_index
+print('Found %s unique tokens.' % len(word_index))
+
+data = pad_sequences(sequences, maxlen=MAX_SEQUENCE_LENGTH)
+
+labels = to_categorical(np.asarray(labels))
+print('Shape of data tensor:', data.shape)
+print('Shape of label tensor:', labels.shape)
+
+# split the data into a training set and a validation set
+indices = np.arange(data.shape[0])
+np.random.shuffle(indices)
+data = data[indices]
+labels = labels[indices]
+nb_validation_samples = int(VALIDATION_SPLIT * data.shape[0])
+
+x_train = data[:-nb_validation_samples]
+y_train = labels[:-nb_validation_samples]
+x_val = data[-nb_validation_samples:]
+y_val = labels[-nb_validation_samples:]
+
+'''
+
+
+
+
+
 
 
 
@@ -598,6 +630,26 @@ fig.set(ylabel="accuracy")
 
 
 #https://www.analyticsvidhya.com/blog/2017/07/word-representations-text-classification-using-fasttext-nlp-facebook/
+
+
+
+
+
+
+#http://mccormickml.com/2018/06/15/applying-word2vec-to-recommenders-and-advertising/
+
+
+
+
+#http://ahogrammer.com/2017/01/20/the-list-of-pretrained-word-embeddings/
+
+
+
+
+
+#https://www.kaggle.com/marijakekic/cnn-in-keras-with-pretrained-word2vec-weights
+
+
 
 
 
