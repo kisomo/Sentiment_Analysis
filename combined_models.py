@@ -35,7 +35,7 @@ encoding="utf-8"
 
 #++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-
+'''
 
 X, y = [], []
 with open(TRAIN_SET_PATH, "r") as infile:
@@ -56,7 +56,7 @@ print(type(X))
 print(y[0])
 print(np.unique(y))
 
-'''
+
 with open(GLOVE_6B_50D_PATH, "rb") as lines:
     wvec = {line.split()[0].decode(encoding): np.array(line.split()[1:],dtype=np.float32)
     #w2v = {line.split()[0].decode(encoding): np.array(line.split()[1:],dtype=np.float32)
@@ -66,20 +66,20 @@ print(type(wvec))
 #print(wvec.keys())
 print(len(wvec))
 
-'''
+
 from itertools import islice
 
 def take(n, iterable):
     "Return first n items of the iterable as a list"
     return list(islice(iterable, n))
 
-'''
+
 n_items = take(2, wvec.keys())
 #for index in wvec.keys():
 for index in n_items:
     print(index, "==>", wvec[index])
 
-'''
+
 # reading glove files, this may take a while
 # we're reading line by line and only saving vectors
 # that correspond to words from our training set
@@ -100,9 +100,11 @@ with open(GLOVE_6B_50D_PATH, "rb") as infile:
             glove_small[word] = nums
 
 n_items = take(2, glove_small.keys())
+print(len(glove_small))
 
 for index in n_items:
     print(index, "==>", glove_small[index])
+
 
 print(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>")          
 glove_big = {}
@@ -115,11 +117,13 @@ with open(GLOVE_840B_300D_PATH, "rb") as infile:
             glove_big[word] = nums
 
 n_items = take(2, glove_big.keys())
+print(len(glove_big))
 
 for index in n_items:
     print(index, "==>", glove_big[index])
 
-print(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>")
+
+print(">>>>>>>>>>>>>>>>>>train our own >>>>>>>>>>>>>>>>>>>>>>>")
 ## train word2vec on all the texts - both training and test set
 ## we're not using test labels, just texts so this is fine
 #model = Word2Vec(X, size=100, window=5, min_count=5, workers=2)
@@ -132,18 +136,35 @@ model = Word2Vec(sentences=X, # tokenized senteces, list of list of strings
                  min_count=5, # minimum frequency per token, filtering rare words
                  sample=0.05, # weight of downsampling common words
                  sg = 0, # should we use skip-gram? if 0, then cbow
-                 iter=5,
+                 iter=10,
                  hs = 0
         )
 
+
 w2v = {w: vec for w, vec in zip(model.wv.index2word, model.wv.syn0)}
+print(type(w2v))
+print(len(w2v))
 
 maneno = model[model.wv.vocab]
 
 print(maneno.shape)
+
 print (model.most_similar('buy'))
+print(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>")
 print (model.most_similar('news'))
-print(type(w2v))
+#print (model.most_similar('girl', number = 3))
+#print(model.difference_in_hierarchy('mammal.n.01', 'dog.n.01'))
+#print(model.difference_in_hierarchy('dog.n.01', 'mammal.n.01'))
+#print(model.distance('mammal.n.01', 'carnivore.n.01'))
+#print(model.distances('mammal.n.01', ['carnivore.n.01', 'dog.n.01']))
+#print(model.distances('mammal.n.01'))
+print(model.most_similar('work'))
+#print(model.norm('work'))
+print(model.similarity('work', 'news'))
+#print(model.word_vec('office'))
+#print(model.words_closer_than('work', 'news'))
+
+
 
 n_items = take(2, w2v.keys())
 
@@ -174,7 +195,7 @@ class MeanEmbeddingVectorizer(object):
     def __init__(self, word2vec):
         self.word2vec = word2vec
         if len(word2vec)>0:
-            self.dim=len(word2vec[next(iter(glove_small))])
+            self.dim=400000 #len(word2vec[next(iter(glove_small))])
         else:
             self.dim=0
             
@@ -199,11 +220,11 @@ print(type(est2))
 print(est2.fit(X,y))
 print(est2.transform(X))
 
-#print(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>")
-#est3 = MeanEmbeddingVectorizer(w2v)
-#print(type(est3))
-#print(est3.fit(X,y))
-#print(est3.transform(X))
+print(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>")
+est3 = MeanEmbeddingVectorizer(w2v)
+print(type(est3))
+print(est3.fit(X,y))
+print(est3.transform(X))
 
 
 # and a tf-idf version of the same
@@ -212,7 +233,7 @@ class TfidfEmbeddingVectorizer(object):
         self.word2vec = word2vec
         self.word2weight = None
         if len(word2vec)>0:
-            self.dim=len(word2vec[next(iter(glove_small))])
+            self.dim=400000 #len(word2vec[next(iter(glove_small))])
         else:
             self.dim=0
         
@@ -249,11 +270,12 @@ print(type(estim2))
 print(estim2.fit(X,y))
 print(estim2.transform(X))
 
-#print(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>")
-#estim3 = TfidfEmbeddingVectorizer(w2v)
-#print(type(estim3))
-#print(estim3.fit(X,y))
-#print(estim3.transform(X))
+print(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>")
+estim3 = TfidfEmbeddingVectorizer(w2v)
+print(type(estim3))
+print(estim3.fit(X,y))
+print(estim3.transform(X))
+
 
 
 # Extra Trees classifier is almost universally great, let's stack it with our embeddings
@@ -266,10 +288,10 @@ etree_glove_big = Pipeline([("glove vectorizer", MeanEmbeddingVectorizer(glove_b
 etree_glove_big_tfidf = Pipeline([("glove vectorizer", TfidfEmbeddingVectorizer(glove_big)), 
                         ("extra trees", ExtraTreesClassifier(n_estimators=200))])
 
-#etree_w2v = Pipeline([("word2vec vectorizer", MeanEmbeddingVectorizer(w2v)), 
-#                        ("extra trees", ExtraTreesClassifier(n_estimators=200))])
-#etree_w2v_tfidf = Pipeline([("word2vec vectorizer", TfidfEmbeddingVectorizer(w2v)), 
-#                        ("extra trees", ExtraTreesClassifier(n_estimators=200))])
+etree_w2v = Pipeline([("word2vec vectorizer", MeanEmbeddingVectorizer(w2v)), 
+                        ("extra trees", ExtraTreesClassifier(n_estimators=200))])
+etree_w2v_tfidf = Pipeline([("word2vec vectorizer", TfidfEmbeddingVectorizer(w2v)), 
+                        ("extra trees", ExtraTreesClassifier(n_estimators=200))])
 
 
 all_models = [
@@ -279,8 +301,8 @@ all_models = [
     ("bern_nb_tfidf", bern_nb_tfidf),
     ("svc", svc),
     ("svc_tfidf", svc_tfidf),
-#    ("w2v", etree_w2v),
-#    ("w2v_tfidf", etree_w2v_tfidf),
+    ("w2v", etree_w2v),
+    ("w2v_tfidf", etree_w2v_tfidf),
     ("glove_small", etree_glove_small),
     ("glove_small_tfidf", etree_glove_small_tfidf),
     ("glove_big", etree_glove_big),
@@ -289,7 +311,6 @@ all_models = [
 ]
 print(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>")
 print(cross_val_score(mult_nb,X,y,cv=3)) #.mean()
-
 
 unsorted_scores = [(name, cross_val_score(model, X, y, cv=5).mean()) for name, model in all_models]
 scores = sorted(unsorted_scores, key=lambda x: -x[1])
@@ -334,34 +355,17 @@ fig.set(xlabel="labeled training examples")
 fig.set(title="R8 benchmark")
 fig.set(ylabel="accuracy")
 
+'''
 
 
 #++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 '''
-
-X, y = [], []
-with open(TRAIN_SET_PATH, "r") as infile:
-    for line in infile:
-        label, text = line.split("\t")
-        # texts are already tokenized, just split on space
-        # in a real case we would use e.g. spaCy for tokenization
-        # and maybe remove stopwords etc.
-        X.append(text.split())
-        y.append(label)
-X, y = np.array(X), np.array(y)
-print ("total examples %s" % len(y))
-print(X.shape)
-print(y.shape)
-print(X[:1])
-print(y[:20])
-
-print('----------------------------------------')
 t_comments_train = pd.read_csv('/home/terrence/CODING/Python/MODELS/Sentiment_Analysis/train.csv').sample(2000)
 
 print(t_comments_train.shape)
+print(t_comments_train.columns)
 print('------------------------------------')
-#print(t_comments_train.columns)
 X1 = t_comments_train.iloc[:,1]
 y1 = t_comments_train.iloc[:,2]
 print(X1.head(3))
@@ -371,22 +375,34 @@ print(y1.head(3))
 import re
 import string
 #re_tok = re.compile(r'([{string.punctuation}“”¨«»®´·º½¾¿¡§£₤‘’])')
-re_tok = re.compile(r'([{string.punctuation}“”¨«»®´·º½¾¿¡§£₤‘’])')
+re_tok = re.compile(r'([{string.punctuation}“”¨«»®´·!\:/()<>=+#[]{}|º½¾¿¡§£₤‘’])')
 
 def tokenize(s): return re_tok.sub(r'\1', s).split()
 
 X1 = X1.apply(lambda comment: tokenize(comment))
 print(X1.head(3))
 
-X1_train, X1_test, y1_train, y1_test = train_test_split(X1, y1, random_state=0)
+#X1_train, X1_test, y1_train, y1_test = train_test_split(X1, y1, random_state=0)
+
+from itertools import islice
+
+def take(n, iterable):
+    "Return first n items of the iterable as a list"
+    return list(islice(iterable, n))
 
 
-with open(GLOVE_6B_50D_PATH, "rb") as lines:
-    wvec = {line.split()[0].decode(encoding): np.array(line.split()[1:],dtype=np.float32)
-    #w2v = {line.split()[0].decode(encoding): np.array(line.split()[1:],dtype=np.float32)
-               for line in lines}
 
-print(type(wvec))
+#with open(GLOVE_6B_50D_PATH, "rb") as lines:
+#    wvec = {line.split()[0].decode(encoding): np.array(line.split()[1:],dtype=np.float32)
+#    #w2v = {line.split()[0].decode(encoding): np.array(line.split()[1:],dtype=np.float32)
+#               for line in lines}
+
+#print(type(wvec))
+
+#n_items = take(2, wvec.keys())
+#for index in n_items:
+#    print(index, "==>", wvec[index])
+
 
 # reading glove files, this may take a while
 # we're reading line by line and only saving vectors
@@ -406,6 +422,11 @@ with open(GLOVE_6B_50D_PATH, "rb") as infile:
             nums=np.array(parts[1:], dtype=np.float32)
             glove_small[word] = nums
 
+
+n_items = take(2, glove_small.keys())
+for index in n_items:
+    print(index, "==>", glove_small[index])
+
             
 glove_big = {}
 with open(GLOVE_840B_300D_PATH, "rb") as infile:
@@ -416,13 +437,40 @@ with open(GLOVE_840B_300D_PATH, "rb") as infile:
             nums=np.array(parts[1:], dtype=np.float32)
             glove_big[word] = nums
 
+n_items = take(2, glove_big.keys())
+for index in n_items:
+    print(index, "==>", glove_big[index])
+
+print(len(all_words))
+
 
 ## train word2vec on all the texts - both training and test set
 ## we're not using test labels, just texts so this is fine
-model = Word2Vec(X1, size=100, window=5, min_count=5, workers=2)
-w2v = {w: vec for w, vec in zip(model.wv.index2word, model.wv.syn0)}
+#model = Word2Vec(X1, size=100, window=5, min_count=5, workers=2)
+#w2v = {w: vec for w, vec in zip(model.wv.index2word, model.wv.syn0)}
 
-print(len(all_words))
+model = Word2Vec(sentences=X1, # tokenized senteces, list of list of strings
+                 size=100,  # size of embedding vectors
+                 window = 5, # I don't know what this means
+                 workers=8, # how many threads?
+                 min_count=5, # minimum frequency per token, filtering rare words
+                 sample=0.05, # weight of downsampling common words
+                 sg = 0, # should we use skip-gram? if 0, then cbow
+                 iter=10,
+                 hs = 0
+        )
+
+
+w2v = {w: vec for w, vec in zip(model.wv.index2word, model.wv.syn0)}
+print(type(w2v))
+print(len(w2v))
+
+maneno = model[model.wv.vocab]
+
+print(maneno.shape)
+
+print (model.most_similar('fuck'))
+
 
 
 # start with the classics - naive bayes of the multinomial and bernoulli varieties
@@ -441,7 +489,7 @@ class MeanEmbeddingVectorizer(object):
     def __init__(self, word2vec):
         self.word2vec = word2vec
         if len(word2vec)>0:
-            self.dim=len(word2vec[next(iter(glove_small))])
+            self.dim=400000 #len(word2vec[next(iter(glove_small))])
         else:
             self.dim=0
             
@@ -455,14 +503,32 @@ class MeanEmbeddingVectorizer(object):
             for words in X1
         ])
 
-  
+est1 = MeanEmbeddingVectorizer(glove_small)
+print(type(est1))
+print(est1.fit(X1,y1))
+print(est1.transform(X1))
+
+
+print(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>")
+est2 = MeanEmbeddingVectorizer(glove_big)
+print(type(est2))
+print(est2.fit(X1,y1))
+print(est2.transform(X1))
+
+print(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>")
+est3 = MeanEmbeddingVectorizer(w2v)
+print(type(est3))
+print(est3.fit(X1,y1))
+print(est3.transform(X1))
+
+ 
 # and a tf-idf version of the same
 class TfidfEmbeddingVectorizer(object):
     def __init__(self, word2vec):
         self.word2vec = word2vec
         self.word2weight = None
         if len(word2vec)>0:
-            self.dim=len(word2vec[next(iter(glove_small))])
+            self.dim=400000 #len(word2vec[next(iter(glove_small))])
         else:
             self.dim=0
         
@@ -488,6 +554,23 @@ class TfidfEmbeddingVectorizer(object):
             ])
 
 
+estim1 = TfidfEmbeddingVectorizer(glove_small)
+print(type(estim1))
+print(estim1.fit(X1,y1))
+print(estim1.transform(X1))
+
+print(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>")
+estim2 = TfidfEmbeddingVectorizer(glove_big)
+print(type(estim2))
+print(estim2.fit(X1,y1))
+print(estim2.transform(X1))
+
+print(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>")
+estim3 = TfidfEmbeddingVectorizer(w2v)
+print(type(estim3))
+print(estim3.fit(X1,y1))
+print(estim3.transform(X1))
+
 
 # Extra Trees classifier is almost universally great, let's stack it with our embeddings
 etree_glove_small = Pipeline([("glove vectorizer", MeanEmbeddingVectorizer(glove_small)), 
@@ -499,10 +582,10 @@ etree_glove_big = Pipeline([("glove vectorizer", MeanEmbeddingVectorizer(glove_b
 etree_glove_big_tfidf = Pipeline([("glove vectorizer", TfidfEmbeddingVectorizer(glove_big)), 
                         ("extra trees", ExtraTreesClassifier(n_estimators=200))])
 
-#etree_w2v = Pipeline([("word2vec vectorizer", MeanEmbeddingVectorizer(w2v)), 
-#                        ("extra trees", ExtraTreesClassifier(n_estimators=200))])
-#etree_w2v_tfidf = Pipeline([("word2vec vectorizer", TfidfEmbeddingVectorizer(w2v)), 
-#                        ("extra trees", ExtraTreesClassifier(n_estimators=200))])
+etree_w2v = Pipeline([("word2vec vectorizer", MeanEmbeddingVectorizer(w2v)), 
+                        ("extra trees", ExtraTreesClassifier(n_estimators=200))])
+etree_w2v_tfidf = Pipeline([("word2vec vectorizer", TfidfEmbeddingVectorizer(w2v)), 
+                        ("extra trees", ExtraTreesClassifier(n_estimators=200))])
 
 
 
@@ -513,8 +596,8 @@ all_models = [
     ("bern_nb_tfidf", bern_nb_tfidf),
     ("svc", svc),
     ("svc_tfidf", svc_tfidf),
-#    ("w2v", etree_w2v),
-#    ("w2v_tfidf", etree_w2v_tfidf),
+    ("w2v", etree_w2v),
+    ("w2v_tfidf", etree_w2v_tfidf),
     ("glove_small", etree_glove_small),
     ("glove_small_tfidf", etree_glove_small_tfidf),
     ("glove_big", etree_glove_big),
@@ -523,7 +606,7 @@ all_models = [
 ]
 
 
-unsorted_scores = [(name, cross_val_score(model, X1, y1, cv=5,scoring ='recall').mean()) for name, model in all_models]
+unsorted_scores = [(name, cross_val_score(model, X1, y1, cv=5).mean()) for name, model in all_models]
 scores = sorted(unsorted_scores, key=lambda x: -x[1])
 
 
@@ -603,17 +686,31 @@ y_val = labels[-nb_validation_samples:]
 '''
 
 
-
-
-
-
-
-
-
-
-
-
 #https://www.analyticsvidhya.com/blog/2018/04/a-comprehensive-guide-to-understand-and-implement-text-classification-in-python/
+
+from sklearn import model_selection, preprocessing, linear_model, naive_bayes, metrics, svm
+from sklearn.feature_extraction.text import TfidfVectorizer, CountVectorizer
+from sklearn import decomposition, ensemble
+
+import pandas, xgboost, numpy, textblob, string
+from keras.preprocessing import text, sequence
+from keras import layers, models, optimizers
+
+# load the dataset
+data = open('/home/terrence/CODING/Python/MODELS/Amazon_Reviews').read()
+labels, texts = [], []
+for i, line in enumerate(data.split("\n")):
+    content = line.split()
+    labels.append(content[0])
+    texts.append(content[1])
+
+# create a dataframe using texts and lables
+trainDF = pd.DataFrame()
+trainDF['text'] = texts
+trainDF['label'] = labels
+
+print(trainDF.shape)
+print(trainDF.head(3))
 
 
 
