@@ -1160,6 +1160,86 @@ print "RCNN, Word Embeddings",  accuracy
 
 #https://medium.com/@sabber/classifying-yelp-review-comments-using-cnn-lstm-and-pre-trained-glove-word-embeddings-part-3-53fcea9a17fa
 
+# Keras
+from keras.preprocessing.text import Tokenizer
+from keras.preprocessing.sequence import pad_sequences
+from keras.models import Sequential
+from keras.layers import Dense, Flatten, LSTM, Conv1D, MaxPooling1D, Dropout, Activation
+from keras.layers.embeddings import Embedding
+## Plotly
+import plotly.offline as py
+import plotly.graph_objs as go
+py.init_notebook_mode(connected=True)
+# Others
+import nltk
+import string
+import numpy as np
+import pandas as pd
+from nltk.corpus import stopwords
+
+from sklearn.manifold import TSNE
+
+#labels = df['stars'].map(lambda x : 1 if int(x) > 3 else 0)
+
+embeddings_index = dict()
+f = open('glove.6B/glove.6B.100d.txt')
+for line in f:
+    values = line.split()
+    word = values[0]
+    coefs = np.asarray(values[1:], dtype='float32')
+    embeddings_index[word] = coefs
+f.close()
+
+
+embedding_matrix = np.zeros((vocabulary_size, 100))
+for word, index in tokenizer.word_index.items():
+    if index > vocabulary_size - 1:
+        break
+    else:
+        embedding_vector = embeddings_index.get(word)
+        if embedding_vector is not None:
+            embedding_matrix[index] = embedding_vector
+
+
+## create model
+model_glove = Sequential()
+model_glove.add(Embedding(vocabulary_size, 100, input_length=50, weights=[embedding_matrix], trainable=False))
+model_glove.add(Dropout(0.2))
+model_glove.add(Conv1D(64, 5, activation='relu'))
+model_glove.add(MaxPooling1D(pool_size=4))
+model_glove.add(LSTM(100))
+model_glove.add(Dense(1, activation='sigmoid'))
+model_glove.compile(loss='binary_crossentropy', optimizer='adam', metrics=['accuracy'])
+## Fit train data
+model_glove.fit(data, np.array(labels), validation_split=0.4, epochs = 3)
+
+
+## Get weights
+conv_embds = model_conv.layers[0].get_weights()[0]
+## Plotting function
+def plot_words(data, start, stop, step):
+    trace = go.Scatter(
+        x = data[start:stop:step,0], 
+        y = data[start:stop:step, 1],
+        mode = 'markers',
+        text= word_list[start:stop:step]
+    )
+    layout = dict(title= 't-SNE 1 vs t-SNE 2',
+                  yaxis = dict(title='t-SNE 2'),
+                  xaxis = dict(title='t-SNE 1'),
+                  hovermode= 'closest')
+    fig = dict(data = [trace], layout= layout)
+    py.iplot(fig)
+
+## Visualize words in two dimensions 
+glove_tsne_embds = TSNE(n_components=2).fit_transform(glove_emds)
+plot_words(glove_tsne_embds, 0, 2000, 1)
+
+
+
+
+
+
 
 
 #https://www.analyticsvidhya.com/blog/2017/07/word-representations-text-classification-using-fasttext-nlp-facebook/
@@ -1171,16 +1251,6 @@ print "RCNN, Word Embeddings",  accuracy
 
 #http://mccormickml.com/2018/06/15/applying-word2vec-to-recommenders-and-advertising/
 
-
-
-
-#http://ahogrammer.com/2017/01/20/the-list-of-pretrained-word-embeddings/
-
-
-
-
-
-#https://www.kaggle.com/marijakekic/cnn-in-keras-with-pretrained-word2vec-weights
 
 
 
