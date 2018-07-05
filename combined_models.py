@@ -712,9 +712,16 @@ trainDF['label'] = labels
 print(trainDF.shape)
 print(trainDF.head(3))
 print(np.unique(labels))
+print(len(trainDF.loc[1,:]))
 
 # split the dataset into training and validation datasets 
 train_x, valid_x, train_y, valid_y = model_selection.train_test_split(trainDF['text'], trainDF['label'])
+
+from itertools import islice
+def take(n, iterable):
+    "Return first n items of the iterable as a list"
+    return list(islice(iterable, n))
+
 
 # label encode the target variable 
 encoder = preprocessing.LabelEncoder()
@@ -724,7 +731,7 @@ valid_y = encoder.fit_transform(valid_y)
 print(train_y.shape)
 print(np.unique(train_y))
 
-#------------------ countvectorizer ----------------------------------
+print("------------------ countvectorizer ----------------------------------")
 # create a count vectorizer object 
 count_vect = CountVectorizer(analyzer='word', token_pattern=r'\w{1,}')
 count_vect.fit(trainDF['text'])
@@ -732,10 +739,10 @@ count_vect.fit(trainDF['text'])
 # transform the training and validation data using count vectorizer object
 xtrain_count =  count_vect.transform(train_x)
 xvalid_count =  count_vect.transform(valid_x)
+print(type(xtrain_count))
 
 
-
-#------------------ tfidf word-level ----------------------------------
+print("------------------ tfidf word-level ----------------------------------")
 #TF(t) = (Number of times term t appears in a document) / (Total number of terms in the document)
 #IDF(t) = log_e(Total number of documents / Number of documents with term t in it)
 
@@ -744,9 +751,10 @@ tfidf_vect = TfidfVectorizer(analyzer='word', token_pattern=r'\w{1,}', max_featu
 tfidf_vect.fit(trainDF['text'])
 xtrain_tfidf =  tfidf_vect.transform(train_x)
 xvalid_tfidf =  tfidf_vect.transform(valid_x)
+print(type(tfidf_vect))
 
 
-#------------------ tfidf n-gram level ----------------------------------
+print("------------------ tfidf n-gram level ----------------------------------")
 # ngram level tf-idf 
 tfidf_vect_ngram = TfidfVectorizer(analyzer='word', token_pattern=r'\w{1,}', ngram_range=(2,3), max_features=5000)
 tfidf_vect_ngram.fit(trainDF['text'])
@@ -754,7 +762,7 @@ xtrain_tfidf_ngram =  tfidf_vect_ngram.transform(train_x)
 xvalid_tfidf_ngram =  tfidf_vect_ngram.transform(valid_x)
 
 
-#------------------ tfidf character level ----------------------------------
+print("------------------ tfidf character level ----------------------------------")
 
 # characters level tf-idf
 tfidf_vect_ngram_chars = TfidfVectorizer(analyzer='char', token_pattern=r'\w{1,}', ngram_range=(2,3), max_features=5000)
@@ -763,8 +771,7 @@ xtrain_tfidf_ngram_chars =  tfidf_vect_ngram_chars.transform(train_x)
 xvalid_tfidf_ngram_chars =  tfidf_vect_ngram_chars.transform(valid_x) 
 
 
-
-#------------------ Embeddings as features ---------------------------------
+print("------------------ Embeddings as features ---------------------------------")
 
 # load the pre-trained word-embedding vectors 
 embeddings_index = {}
@@ -776,6 +783,10 @@ for i, line in enumerate(open('/home/terrence/CODING/Python/MODELS/wiki-news-300
 print(type(embeddings_index))
 print(len(embeddings_index))
 
+n_items = take(2, embeddings_index.keys())
+for index in n_items:
+    print(index, "==>", embeddings_index[index])
+
 
 # create a tokenizer 
 token = text.Tokenizer()
@@ -784,10 +795,16 @@ word_index = token.word_index
 
 print(type(word_index))
 
+n_items = take(2, word_index.keys())
+for index in n_items:
+    print(index, "==>", word_index[index])
+
 # convert text to sequence of tokens and pad them to ensure equal length vectors 
 train_seq_x = sequence.pad_sequences(token.texts_to_sequences(train_x), maxlen=70)
 valid_seq_x = sequence.pad_sequences(token.texts_to_sequences(valid_x), maxlen=70)
-
+print(type(train_seq_x))
+print(train_seq_x.shape)
+print(train_seq_x[:2,:])
 
 # create token-embedding mapping
 embedding_matrix = numpy.zeros((len(word_index) + 1, 300))
@@ -796,9 +813,11 @@ for word, i in word_index.items():
     if embedding_vector is not None:
         embedding_matrix[i] = embedding_vector
 
+print(type(embedding_matrix))
+#print(type(embedding_matrix.shape))
+#print(type(embedding_matrix[:2,:]))
 
-
-#-------------------- Text / NLP based features -----------------------------
+print("-------------------- Text / NLP based features -----------------------------")
 
 trainDF['char_count'] = trainDF['text'].apply(len)
 trainDF['word_count'] = trainDF['text'].apply(lambda x: len(x.split()))
@@ -837,11 +856,7 @@ trainDF['adv_count'] = trainDF['text'].apply(lambda x: check_pos_tag(x, 'adv'))
 trainDF['pron_count'] = trainDF['text'].apply(lambda x: check_pos_tag(x, 'pron'))
 
 
-
-
-
-
-#---------------------- Topic Models as features -------------------------------
+print("---------------------- Topic Models as features -------------------------------")
 
 # train a LDA Model
 lda_model = decomposition.LatentDirichletAllocation(n_components=20, learning_method='online', max_iter=20)
@@ -858,6 +873,7 @@ for i, topic_dist in enumerate(topic_word):
 
 #models --------
 
+
 def train_model(classifier, feature_vector_train, label, feature_vector_valid, is_neural_net=False):
     # fit the training dataset on the classifier
     classifier.fit(feature_vector_train, label)
@@ -871,7 +887,7 @@ def train_model(classifier, feature_vector_train, label, feature_vector_valid, i
     return metrics.accuracy_score(predictions, valid_y)
 
 
-#----------------- Model - Naive Bayes -------------------------
+#----------------------------- Model - Naive Bayes -------------------------
 
 # Naive Bayes on Count Vectors
 accuracy = train_model(naive_bayes.MultinomialNB(), xtrain_count, train_y, xvalid_count)
@@ -894,26 +910,243 @@ print "NB, CharLevel Vectors: ", accuracy
 #NB, CharLevel Vectors:  0.6872
 
 
+print("----------------- Model - Logistic regression Classifier -------------------------")
 
-#----------------- Model - Linear Classifier -------------------------
+# Linear Classifier on Count Vectors
+accuracy = train_model(linear_model.LogisticRegression(), xtrain_count, train_y, xvalid_count)
+print "LR, Count Vectors: ", accuracy
+
+# Linear Classifier on Word Level TF IDF Vectors
+accuracy = train_model(linear_model.LogisticRegression(), xtrain_tfidf, train_y, xvalid_tfidf)
+print "LR, WordLevel TF-IDF: ", accuracy
+
+# Linear Classifier on Ngram Level TF IDF Vectors
+accuracy = train_model(linear_model.LogisticRegression(), xtrain_tfidf_ngram, train_y, xvalid_tfidf_ngram)
+print "LR, N-Gram Vectors: ", accuracy
+
+# Linear Classifier on Character Level TF IDF Vectors
+accuracy = train_model(linear_model.LogisticRegression(), xtrain_tfidf_ngram_chars, train_y, xvalid_tfidf_ngram_chars)
+print( "LR, CharLevel Vectors: ", accuracy)
+#LR, Count Vectors:  0.7048
+#LR, WordLevel TF-IDF:  0.7056
+#LR, N-Gram Vectors:  0.4896
+#LR, CharLevel Vectors:  0.7012
+
 
 #----------------- Model - SVM -------------------------
 
+# SVM on Ngram Level TF IDF Vectors
+accuracy = train_model(svm.SVC(), xtrain_tfidf_ngram, train_y, xvalid_tfidf_ngram)
+print "SVM, N-Gram Vectors: ", accuracy
+#SVM, N-Gram Vectors:  0.5296
+
+
 #----------------- Model - Baggin -------------------------
+# RF on Count Vectors
+accuracy = train_model(ensemble.RandomForestClassifier(), xtrain_count, train_y, xvalid_count)
+print "RF, Count Vectors: ", accuracy
 
-#----------------- Model - Boosting -------------------------
+# RF on Word Level TF IDF Vectors
+accuracy = train_model(ensemble.RandomForestClassifier(), xtrain_tfidf, train_y, xvalid_tfidf)
+print "RF, WordLevel TF-IDF: ", accuracy
+#RF, Count Vectors:  0.6972
+#RF, WordLevel TF-IDF:  0.6988
 
-#----------------- Model - Shallow Neural Nets -------------------------
 
-#----------------- Model - CNN -------------------------
+print("----------------- Model - Boosting -------------------------")
 
-#----------------- Model - LSTM -------------------------
+# Extereme Gradient Boosting on Count Vectors
+accuracy = train_model(xgboost.XGBClassifier(), xtrain_count.tocsc(), train_y, xvalid_count.tocsc())
+print "Xgb, Count Vectors: ", accuracy
 
-#----------------- Model - GRU -------------------------
+# Extereme Gradient Boosting on Word Level TF IDF Vectors
+accuracy = train_model(xgboost.XGBClassifier(), xtrain_tfidf.tocsc(), train_y, xvalid_tfidf.tocsc())
+print "Xgb, WordLevel TF-IDF: ", accuracy
 
-#----------------- Model - Bidirectional RNN -------------------------
+# Extereme Gradient Boosting on Character Level TF IDF Vectors
+accuracy = train_model(xgboost.XGBClassifier(), xtrain_tfidf_ngram_chars.tocsc(), train_y, xvalid_tfidf_ngram_chars.tocsc())
+print "Xgb, CharLevel Vectors: ", accuracy
 
-#----------------- Model - Recurrent CNN (RCNN) -------------------------
+#Xgb, Count Vectors:  0.6324
+#Xgb, WordLevel TF-IDF:  0.6364
+#Xgb, CharLevel Vectors:  0.6548
+
+
+print("----------------- Model - Shallow Neural Nets -------------------------")
+
+def create_model_architecture(input_size):
+    # create input layer 
+    input_layer = layers.Input((input_size, ), sparse=True)
+    
+    # create hidden layer
+    hidden_layer = layers.Dense(100, activation="relu")(input_layer)
+    
+    # create output layer
+    output_layer = layers.Dense(1, activation="sigmoid")(hidden_layer)
+
+    classifier = models.Model(inputs = input_layer, outputs = output_layer)
+    classifier.compile(optimizer=optimizers.Adam(), loss='binary_crossentropy')
+    return classifier 
+
+classifier = create_model_architecture(xtrain_tfidf_ngram.shape[1])
+accuracy = train_model(classifier, xtrain_tfidf_ngram, train_y, xvalid_tfidf_ngram, is_neural_net=True)
+print("NN, Ngram Level TF IDF Vectors",  accuracy)
+
+
+print("----------------- Model - CNN -------------------------")
+
+def create_cnn():
+    # Add an Input Layer
+    input_layer = layers.Input((70, ))
+
+    # Add the word embedding Layer
+    embedding_layer = layers.Embedding(len(word_index) + 1, 300, weights=[embedding_matrix], trainable=False)(input_layer)
+    embedding_layer = layers.SpatialDropout1D(0.3)(embedding_layer)
+
+    # Add the convolutional Layer
+    conv_layer = layers.Convolution1D(100, 3, activation="relu")(embedding_layer)
+
+    # Add the pooling Layer
+    pooling_layer = layers.GlobalMaxPool1D()(conv_layer)
+
+    # Add the output Layers
+    output_layer1 = layers.Dense(50, activation="relu")(pooling_layer)
+    output_layer1 = layers.Dropout(0.25)(output_layer1)
+    output_layer2 = layers.Dense(1, activation="sigmoid")(output_layer1)
+
+    # Compile the model
+    model = models.Model(inputs=input_layer, outputs=output_layer2)
+    model.compile(optimizer=optimizers.Adam(), loss='binary_crossentropy')
+    
+    return model
+
+classifier = create_cnn()
+accuracy = train_model(classifier, train_seq_x, train_y, valid_seq_x, is_neural_net=True)
+print "CNN, Word Embeddings",  accuracy
+
+
+print("----------------- Model - LSTM -------------------------------")
+
+def create_rnn_lstm():
+    # Add an Input Layer
+    input_layer = layers.Input((70, ))
+
+    # Add the word embedding Layer
+    embedding_layer = layers.Embedding(len(word_index) + 1, 300, weights=[embedding_matrix], trainable=False)(input_layer)
+    embedding_layer = layers.SpatialDropout1D(0.3)(embedding_layer)
+
+    # Add the LSTM Layer
+    lstm_layer = layers.LSTM(100)(embedding_layer)
+
+    # Add the output Layers
+    output_layer1 = layers.Dense(50, activation="relu")(lstm_layer)
+    output_layer1 = layers.Dropout(0.25)(output_layer1)
+    output_layer2 = layers.Dense(1, activation="sigmoid")(output_layer1)
+
+    # Compile the model
+    model = models.Model(inputs=input_layer, outputs=output_layer2)
+    model.compile(optimizer=optimizers.Adam(), loss='binary_crossentropy')
+    
+    return model
+
+classifier = create_rnn_lstm()
+accuracy = train_model(classifier, train_seq_x, train_y, valid_seq_x, is_neural_net=True)
+print "RNN-LSTM, Word Embeddings",  accuracy
+
+
+print("----------------- Model - GRU -------------------------")
+
+def create_rnn_gru():
+    # Add an Input Layer
+    input_layer = layers.Input((70, ))
+
+    # Add the word embedding Layer
+    embedding_layer = layers.Embedding(len(word_index) + 1, 300, weights=[embedding_matrix], trainable=False)(input_layer)
+    embedding_layer = layers.SpatialDropout1D(0.3)(embedding_layer)
+
+    # Add the GRU Layer
+    lstm_layer = layers.GRU(100)(embedding_layer)
+
+    # Add the output Layers
+    output_layer1 = layers.Dense(50, activation="relu")(lstm_layer)
+    output_layer1 = layers.Dropout(0.25)(output_layer1)
+    output_layer2 = layers.Dense(1, activation="sigmoid")(output_layer1)
+
+    # Compile the model
+    model = models.Model(inputs=input_layer, outputs=output_layer2)
+    model.compile(optimizer=optimizers.Adam(), loss='binary_crossentropy')
+    
+    return model
+
+classifier = create_rnn_gru()
+accuracy = train_model(classifier, train_seq_x, train_y, valid_seq_x, is_neural_net=True)
+print "RNN-GRU, Word Embeddings",  accuracy
+
+
+
+print("----------------- Model - Bidirectional RNN -------------------------")
+
+def create_bidirectional_rnn():
+     # Add an Input Layer
+    input_layer = layers.Input((70, ))
+
+    # Add the word embedding Layer
+    embedding_layer = layers.Embedding(len(word_index) + 1, 300, weights=[embedding_matrix], trainable=False)(input_layer)
+    embedding_layer = layers.SpatialDropout1D(0.3)(embedding_layer)
+
+    # Add the LSTM Layer
+    lstm_layer = layers.Bidirectional(layers.GRU(100))(embedding_layer)
+
+    # Add the output Layers
+    output_layer1 = layers.Dense(50, activation="relu")(lstm_layer)
+    output_layer1 = layers.Dropout(0.25)(output_layer1)
+    output_layer2 = layers.Dense(1, activation="sigmoid")(output_layer1)
+
+    # Compile the model
+    model = models.Model(inputs=input_layer, outputs=output_layer2)
+    model.compile(optimizer=optimizers.Adam(), loss='binary_crossentropy')
+    
+    return model
+
+classifier = create_bidirectional_rnn()
+accuracy = train_model(classifier, train_seq_x, train_y, valid_seq_x, is_neural_net=True)
+print "RNN-Bidirectional, Word Embeddings",  accuracy
+
+
+print("----------------- Model - Recurrent CNN (RCNN) -------------------------")
+
+def create_rcnn():
+    # Add an Input Layer
+    input_layer = layers.Input((70, ))
+
+    # Add the word embedding Layer
+    embedding_layer = layers.Embedding(len(word_index) + 1, 300, weights=[embedding_matrix], trainable=False)(input_layer)
+    embedding_layer = layers.SpatialDropout1D(0.3)(embedding_layer)
+    
+    # Add the recurrent layer
+    rnn_layer = layers.Bidirectional(layers.GRU(50, return_sequences=True))(embedding_layer)
+    
+    # Add the convolutional Layer
+    conv_layer = layers.Convolution1D(100, 3, activation="relu")(embedding_layer)
+
+    # Add the pooling Layer
+    pooling_layer = layers.GlobalMaxPool1D()(conv_layer)
+
+    # Add the output Layers
+    output_layer1 = layers.Dense(50, activation="relu")(pooling_layer)
+    output_layer1 = layers.Dropout(0.25)(output_layer1)
+    output_layer2 = layers.Dense(1, activation="sigmoid")(output_layer1)
+
+    # Compile the model
+    model = models.Model(inputs=input_layer, outputs=output_layer2)
+    model.compile(optimizer=optimizers.Adam(), loss='binary_crossentropy')
+    return model
+
+classifier = create_rcnn()
+accuracy = train_model(classifier, train_seq_x, train_y, valid_seq_x, is_neural_net=True)
+print "RCNN, Word Embeddings",  accuracy
+
+
 
 #----------------- Model - Other Deep Learning -------------------------
 
