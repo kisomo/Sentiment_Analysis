@@ -34,7 +34,6 @@ encoding="utf-8"
 
 
 #++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-
 '''
 
 X, y = [], []
@@ -153,16 +152,17 @@ print (model.most_similar('buy'))
 print(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>")
 print (model.most_similar('news'))
 #print (model.most_similar('girl', number = 3))
-#print(model.difference_in_hierarchy('mammal.n.01', 'dog.n.01'))
-#print(model.difference_in_hierarchy('dog.n.01', 'mammal.n.01'))
-#print(model.distance('mammal.n.01', 'carnivore.n.01'))
-#print(model.distances('mammal.n.01', ['carnivore.n.01', 'dog.n.01']))
-#print(model.distances('mammal.n.01'))
+vector = model.wv
+#print(vector.difference_in_hierarchy('mammal.n.01', 'dog.n.01'))
+#print(vector.difference_in_hierarchy('dog.n.01', 'mammal.n.01'))
+print(vector.distance('buy', 'news'))
+print(vector.distances('buy', ['news', 'press']))
+print(vector.distances('purchase'))
 print(model.most_similar('work'))
-#print(model.norm('work'))
+#print(vector.norm('work'))
 print(model.similarity('work', 'news'))
-#print(model.word_vec('office'))
-#print(model.words_closer_than('work', 'news'))
+print(vector.word_vec('office'))
+print(vector.words_closer_than('work', 'news'))
 
 
 
@@ -1160,6 +1160,7 @@ print "RCNN, Word Embeddings",  accuracy
 
 #https://medium.com/@sabber/classifying-yelp-review-comments-using-cnn-lstm-and-pre-trained-glove-word-embeddings-part-3-53fcea9a17fa
 
+'''
 # Keras
 from keras.preprocessing.text import Tokenizer
 from keras.preprocessing.sequence import pad_sequences
@@ -1182,7 +1183,7 @@ from sklearn.manifold import TSNE
 #labels = df['stars'].map(lambda x : 1 if int(x) > 3 else 0)
 
 embeddings_index = dict()
-f = open('glove.6B/glove.6B.100d.txt')
+f = open('/home/terrence/CODING/Python/MODELS/glove.6B.100d.txt')
 for line in f:
     values = line.split()
     word = values[0]
@@ -1190,7 +1191,29 @@ for line in f:
     embeddings_index[word] = coefs
 f.close()
 
+print(type(embeddings_index))
 
+df = pd.read_csv("/home/terrence/CODING/Python/MODELS/Sentiment_Analysis/fake_or_real_news.csv")
+print(df.shape)
+print(df.head(3))
+
+df = df.set_index("Unnamed: 0")
+print(df.head(3))
+y = df.label
+df.drop("label", axis =1)
+from sklearn.cross_validation import train_test_split
+from sklearn.feature_extraction.text import CountVectorizer
+#from sklearn.feature_extraction.text import TfidfTransformer
+from sklearn.feature_extraction.text import TfidfVectorizer
+X = df["text"]
+
+# create a tokenizer 
+tokenizer = Tokenizer()
+
+
+X_train, X_test, y_train, y_test = train_test_split(df['text'],y, test_size=0.33, random_state=53)
+
+vocabulary_size = len(X)
 embedding_matrix = np.zeros((vocabulary_size, 100))
 for word, index in tokenizer.word_index.items():
     if index > vocabulary_size - 1:
@@ -1211,7 +1234,7 @@ model_glove.add(LSTM(100))
 model_glove.add(Dense(1, activation='sigmoid'))
 model_glove.compile(loss='binary_crossentropy', optimizer='adam', metrics=['accuracy'])
 ## Fit train data
-model_glove.fit(data, np.array(labels), validation_split=0.4, epochs = 3)
+model_glove.fit(X, y, validation_split=0.4, epochs = 3)
 
 
 ## Get weights
@@ -1235,10 +1258,7 @@ def plot_words(data, start, stop, step):
 glove_tsne_embds = TSNE(n_components=2).fit_transform(glove_emds)
 plot_words(glove_tsne_embds, 0, 2000, 1)
 
-
-
-
-
+'''
 
 
 
@@ -1250,6 +1270,56 @@ plot_words(glove_tsne_embds, 0, 2000, 1)
 
 
 #http://mccormickml.com/2018/06/15/applying-word2vec-to-recommenders-and-advertising/
+
+
+
+
+#http://ai.intelligentonlinetools.com/ml/fasttext-word-embeddings-text-classification-python-mlp/
+
+
+
+
+
+#http://ai.intelligentonlinetools.com/ml/k-means-clustering-example-word2vec/
+
+'''
+from gensim.models import Word2Vec
+sentences = [['this', 'is', 'the', 'good', 'machine', 'learning', 'book'],
+            ['this', 'is',  'another', 'book'],
+            ['one', 'more', 'book'],
+            ['this', 'is', 'the', 'new', 'post'],
+                        ['this', 'is', 'about', 'machine', 'learning', 'post'],  
+            ['and', 'this', 'is', 'the', 'last', 'post']]
+
+model = Word2Vec(sentences, min_count=1)
+
+print (model.similarity('this', 'is'))
+print (model.similarity('post', 'book'))
+#output -0.0198180344218
+#output -0.079446731287
+print (model.most_similar(positive=['machine'], negative=[], topn=2))
+#output: [('new', 0.24608060717582703), ('is', 0.06899910420179367)]
+print (model['the'])
+#output [-0.00217354 -0.00237131  0.00296396 ...,  0.00138597  0.00291924  0.00409528]
+
+#print (list(model.vocab))
+#print (len(list(model.vocab)))
+
+X = model[model.vocab]
+
+from nltk.cluster import KMeansClusterer
+import nltk
+NUM_CLUSTERS=3
+kclusterer = KMeansClusterer(NUM_CLUSTERS, distance=nltk.cluster.util.cosine_distance, repeats=25)
+assigned_clusters = kclusterer.cluster(X, assign_clusters=True)
+print (assigned_clusters)
+# output: [0, 2, 1, 2, 2, 1, 2, 2, 0, 1, 0, 1, 2, 1, 2]
+'''
+
+
+
+
+
 
 
 
