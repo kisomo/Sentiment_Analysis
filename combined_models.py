@@ -1317,6 +1317,46 @@ print (assigned_clusters)
 '''
 
 
+#https://www.kaggle.com/sbongo/do-pretrained-embeddings-give-you-the-extra-edge
+
+'''
+import sys, os, re, csv, codecs, numpy as np, pandas as pd
+import matplotlib.pyplot as plt
+%matplotlib inline
+from keras.preprocessing.text import Tokenizer
+from keras.preprocessing.sequence import pad_sequences
+from keras.layers import Dense, Input, LSTM, Embedding, Dropout, Activation
+from keras.layers import Bidirectional, GlobalMaxPool1D,Bidirectional
+from keras.models import Model
+from keras import initializers, regularizers, constraints, optimizers, layers
+import matplotlib.pyplot as plt
+%matplotlib inline
+import gensim.models.keyedvectors as word2vec
+import gc
+
+
+train = pd.read_csv('../input/jigsaw-toxic-comment-classification-challenge/train.csv')
+test = pd.read_csv('../input/jigsaw-toxic-comment-classification-challenge/test.csv')
+embed_size=0
+
+list_classes = ["toxic", "severe_toxic", "obscene", "threat", "insult", "identity_hate"]
+y = train[list_classes].values
+list_sentences_train = train["comment_text"]
+list_sentences_test = test["comment_text"]
+
+max_features = 20000
+tokenizer = Tokenizer(num_words=max_features)
+tokenizer.fit_on_texts(list(list_sentences_train))
+list_tokenized_train = tokenizer.texts_to_sequences(list_sentences_train)
+list_tokenized_test = tokenizer.texts_to_sequences(list_sentences_test)
+
+'''
+
+
+
+
+
+
 
 
 
