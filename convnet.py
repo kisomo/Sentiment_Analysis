@@ -4,6 +4,18 @@ import pandas as pd
 import re
 import string
 import tensorflow as tf
+from keras.preprocessing.text import Tokenizer
+from keras.preprocessing.sequence import pad_sequences
+from keras import utils as np_utils
+import os
+from sklearn.model_selection import train_test_split
+from sklearn import preprocessing
+from keras.layers import Embedding
+from keras.layers import Input, Dense, Conv1D, MaxPooling1D, Flatten
+from keras.models import Model
+import pickle
+#import cPickle
+#import dill
 
 df = pd.read_csv('/home/terrence/CODING/Python/MODELS/Sentiment_Analysis/fake_or_real_news.csv').sample(1500)
 print(df.shape)
@@ -13,6 +25,23 @@ df1 = df
 X = df['text']
 df['label_num'] = df.label.map({'FAKE':0,'REAL':1})
 y = df.label_num
+
+MAX_NB_WORDS = 80000
+MAX_SEQUENCE_LENGTH = 1000
+EMBEDDING_DIM = 300
+
+GLOVE_PATH = '/home/terrence/CODING/Python/MODELS/glove.6B.300d.txt'
+encoding = "utf-8"
+
+embeddings_index = {}
+#f = open(os.path.join(GLOVE_DIR, 'glove.6B.100d.txt'))
+f = open(GLOVE_PATH, "rb")
+for line in f:
+    values = line.split()
+    word = values[0]
+    coefs = np.asarray(values[1:], dtype='float32')
+    embeddings_index[word] = coefs
+f.close()
 
 #https://stackoverflow.com/questions/43076609/how-to-calculate-precision-and-recall-in-keras
 
@@ -33,39 +62,12 @@ def as_keras_metric(method):
 precision = as_keras_metric(tf.metrics.precision)
 recall = as_keras_metric(tf.metrics.recall)
 
-'''
-re_tok = re.compile(r'([{string.punctuation}“”¨«»®´·!\:/?()<>=+#[]{}|º½¾¿¡§£₤‘’])')
-
-def tokenize(s):
-     return re_tok.sub(r'\1', s).split()
-
-X = X.apply(lambda comment: tokenize(comment))
-print(X.head(3))
-
-X,y = np.array(X), np.array(y)
-'''
-
 texts = df['text']
 labels = df['label_num']
 
 print('Found %s texts :' % len(texts))
 
-MAX_NB_WORDS = 80000
-MAX_SEQUENCE_LENGTH = 1000
-VALIDATION_SPLIT = 0.2
-EMBEDDING_DIM = 300
-
-GLOVE_PATH = '/home/terrence/CODING/Python/MODELS/glove.6B.300d.txt'
-encoding = "utf-8"
-
-from keras.preprocessing.text import Tokenizer
-from keras.preprocessing.sequence import pad_sequences
-from keras import utils as np_utils
-import os
-from sklearn.model_selection import train_test_split
-from sklearn import preprocessing
-
-tokenizer = Tokenizer(nb_words=MAX_NB_WORDS)
+tokenizer = Tokenizer(num_words=MAX_NB_WORDS)
 tokenizer.fit_on_texts(texts)
 sequences = tokenizer.texts_to_sequences(texts)
 
@@ -90,28 +92,7 @@ np.random.shuffle(indices)
 data = data[indices]
 labels = labels[indices]
 
-'''
-nb_validation_samples = int(VALIDATION_SPLIT * data.shape[0])
-x_train = data[:-nb_validation_samples]
-#y_train = labels[:-nb_validation_samples]
-y_train = y[:-nb_validation_samples]
-x_val = data[-nb_validation_samples:]
-#y_val = labels[-nb_validation_samples:]
-y_val = y[-nb_validation_samples:]
-'''
-
-X_train, X_test, y_train, y_test = train_test_split(data, y, test_size=0.2, random_state=1)
-X_train, X_val, y_train, y_val = train_test_split(X_train, y_train, test_size=0.2, random_state=1)
-
-embeddings_index = {}
-#f = open(os.path.join(GLOVE_DIR, 'glove.6B.100d.txt'))
-f = open(GLOVE_PATH, "rb")
-for line in f:
-    values = line.split()
-    word = values[0]
-    coefs = np.asarray(values[1:], dtype='float32')
-    embeddings_index[word] = coefs
-f.close()
+X_train, X_val, y_train, y_val = train_test_split(data, y, test_size=0.2, random_state=1)
 
 print('Found %s word vectors.' % len(embeddings_index))
 
@@ -122,24 +103,15 @@ for word, i in word_index.items():
         # words not found in embedding index will be all-zeros.
         embedding_matrix[i] = embedding_vector
 
-
-from keras.layers import Embedding
-
 embedding_layer = Embedding(len(word_index) + 1,
                             EMBEDDING_DIM,
                             weights=[embedding_matrix],
                             input_length=MAX_SEQUENCE_LENGTH,
                             trainable=False)
 
-'''
-embedding_layer = Embedding(len(word_index) + 1,
-                            EMBEDDING_DIM,
-                            input_length=MAX_SEQUENCE_LENGTH)
 
-'''
+#embedding_layer = Embedding(len(word_index) + 1, EMBEDDING_DIM, input_length=MAX_SEQUENCE_LENGTH)
 
-from keras.layers import Input, Dense, Conv1D, MaxPooling1D, Flatten
-from keras.models import Model
 
 sequence_input = Input(shape=(MAX_SEQUENCE_LENGTH,), dtype='int32')
 embedded_sequences = embedding_layer(sequence_input)
@@ -166,37 +138,54 @@ model.fit(X_train, y_train, validation_data=(X_val, y_val),
           epochs=1, batch_size=128)
 
 
-y_pred = model.predict(X_test)
-#print(y_pred)
+
+'''
+save_classifier = open("keras_fakenews_model", "wb")
+#pickle.dump(model, save_classifier)
+#cPickle.dump(model, save_classifier)
+##dill.dump(model, save_classifier)
+save_classifier.close()
+print("hoora!")
+
+classifier_f = open("keras_fakenews_model","rb")
+model = pickle.load(classifier_f)
+classifier_f.close()
+'''
+
+y_pred = model.predict(X_val)
+print(y_pred)
+#print((y_pred != y_val).sum())
 #print(y_test)
-'''
-score = model.evaluate(x_val, y_val, verbose =0)
-print(score)
-'''
+#score = model.evaluate(x_val, y_val, verbose =0)
+#print(score)
+
 compl = np.array(['this is want I was telling him'])
 
 def predict_complaint(complaint):
     #takes complaint
-    tokenizer = Tokenizer(nb_words=MAX_NB_WORDS)
+    tokenizer = Tokenizer(num_words=MAX_NB_WORDS)
     tokenizer.fit_on_texts(compl)
     comp2 = tokenizer.texts_to_sequences(compl)
 
     comp_index = tokenizer.word_index
     #dt = pad_sequences(comp2, maxlen=MAX_SEQUENCE_LENGTH)
 
-    comp_vector = np.zeros((len(comp_index) + 1, EMBEDDING_DIM))
+    #comp_vector = np.zeros((len(comp_index) + 1, EMBEDDING_DIM))
+    comp_vector = np.zeros((len(comp_index) + 1, MAX_SEQUENCE_LENGTH))
     for word, i in comp_index.items():
         embed_vector = embeddings_index.get(word)
         if embed_vector is not None:
             # words not found in embedding index will be all-zeros.
-            comp_vector[i] = embed_vector
-    return comp_vector
+            #comp_vector[i] = embed_vector
+            comp_vector[i,:EMBEDDING_DIM] = embed_vector
+            ##comp_vector[i] = pad_sequences(comp_vector[i], maxlen=MAX_SEQUENCE_LENGTH)
+            t = np.mean(comp_vector, axis=0) #comp_vector
+            t1 = t.reshape(-1,1000)
+    return t1 #np.mean(comp_vector, axis=0) #comp_vector
 
 res = predict_complaint(compl)
 print(res.shape)
-
-#print(model.predict(comp_vector))
-
+#print(model.predict(res))
 
 
 
