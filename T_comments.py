@@ -70,7 +70,7 @@ print(train.shape)
 sc.stop()
 '''
 
-
+'''
 print("+++++++++++++++++++++++++++++++++++ sklearn ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++")
 
 
@@ -156,7 +156,7 @@ preds3 = np.zeros((len(test), len(label_cols)))
 preds4 = np.zeros((len(test), len(label_cols)))
 preds5 = np.zeros((len(test), len(label_cols)))
 preds6 = np.zeros((len(test), len(label_cols)))
-
+'''
 
 
 '''
@@ -244,7 +244,7 @@ submission_m2 = pd.concat([submid1, pd.DataFrame(preds1, columns = label_cols)],
 submission_m2.to_csv('submission_m2.csv', index=False, float_format="%.8f")
 '''
 
-
+'''
 from sklearn.preprocessing import MinMaxScaler, MaxAbsScaler
 #scaler = MinMaxScaler()
 scaler = MaxAbsScaler()
@@ -268,7 +268,7 @@ print(preds2[:3,:])
 submid2 = pd.DataFrame({'id': subm2["id"]})
 submission_lr = pd.concat([submid2, pd.DataFrame(preds2, columns = label_cols)], axis=1)
 submission_lr.to_csv('submission_lr.csv', index=False, float_format="%.8f")
-
+'''
 
 
 '''
@@ -372,7 +372,7 @@ submission_nn.to_csv('C:\\Users\\y9ck3\\GITHUB\\Sentiment_Analysis\\submission_n
 
 
 
-'''
+
 print("+++++++++++++++++++++++++++++++++++++++++++ spark +++++++++++++++++++++++++++++++++++++++++++++++++++++++")
 
 #http://people.duke.edu/~ccc14/sta-663-2016/21D_Spark_MLib.html
@@ -394,6 +394,7 @@ from pyspark.mllib.regression import LabeledPoint
 from pyspark.mllib.clustering import GaussianMixture
 from pyspark.mllib.classification import LogisticRegressionWithLBFGS, LogisticRegressionModel
 
+'''
 #df = (sqlc.read.format('com.databricks.spark.csv').options(header='false', inferschema='true').load('data/sonar.all-data.txt'))
 df = (sqlc.read.format('com.databricks.spark.csv').options(header='false', inferschema='true').load('C:\\Users\\y9ck3\GITHUB\\Sentiment_Analysis\\train.csv'))
 

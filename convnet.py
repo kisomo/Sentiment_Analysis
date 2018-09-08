@@ -140,17 +140,17 @@ model.fit(X_train, y_train, validation_data=(X_val, y_val),
 
 
 '''
-save_classifier = open("keras_fakenews_model", "wb")
-#pickle.dump(model, save_classifier)
+save_classifier = open("keras_fakenews_model.pickle", "wb")
+pickle.dump(model, save_classifier)
 #cPickle.dump(model, save_classifier)
 ##dill.dump(model, save_classifier)
 save_classifier.close()
 print("hoora!")
 
-classifier_f = open("keras_fakenews_model","rb")
+
+classifier_f = open("keras_fakenews_model.pickle","rb")
 model = pickle.load(classifier_f)
 classifier_f.close()
-'''
 
 y_pred = model.predict(X_val)
 print(y_pred)
@@ -187,7 +187,7 @@ res = predict_complaint(compl)
 print(res.shape)
 #print(model.predict(res))
 
-
+'''
 
 
 
