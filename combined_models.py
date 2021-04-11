@@ -1,5 +1,11 @@
 # -*- coding: utf-8 -*-
 
+#sudo docker build . -t sentiment:1.0.0
+#sudo docker images
+#sudo docker run -d -p 5000:5000 sentiment:1.0.0
+#sudo docker run --rm -it sentiment:1.0.0
+
+
 ''' Text Classification using word2vec'''
 #http://nadbordrozd.github.io/blog/2016/05/20/text-classification-with-word2vec/
 
