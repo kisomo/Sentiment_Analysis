@@ -18,7 +18,7 @@ RUN pip3 install -r requirements.txt
 
 
 ENTRYPOINT ["python3"]
-CMD ["py_prep2.py"]
+CMD ["NLP_2021.py"]
 
 
 
