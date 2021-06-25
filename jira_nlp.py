@@ -1,4 +1,8 @@
 
+import sys
+print(sys.path)
+
+
 import numpy as np
 import pandas as pd
 
@@ -42,13 +46,12 @@ print(y.shape)
 
 print("#=======================================================================================================================================================================")
 
-
 import gensim
 from sklearn.feature_extraction.text import CountVectorizer
  
 documents = sms #pd.read_csv('news-data.csv', error_bad_lines=False);
  
-documents.head()
+print(documents.head())
 
 
 # Use CountVectorizor to find three letter tokens, remove stop_words, 
@@ -57,14 +60,14 @@ documents.head()
 vect = CountVectorizer(min_df=20, max_df=0.2, stop_words='english',  token_pattern='(?u)\\b\\w\\w\\w+\\b')
 # Fit and transform
 X = vect.fit_transform(documents.message)
- 
+
 # Convert sparse matrix to gensim corpus.
 corpus = gensim.matutils.Sparse2Corpus(X, documents_columns=False)
  
 # Mapping from word IDs to words (To be used in LdaModel's id2word parameter)
 id_map = dict((v, k) for k, v in vect.vocabulary_.items())
  
- 
+
 # Use the gensim.models.ldamodel.LdaModel constructor to estimate 
 # LDA model parameters on the corpus, and save to the variable `ldamodel`
  
@@ -79,7 +82,7 @@ for idx, topic in ldamodel.print_topics(-1):
 #Let’s say that we want get the probability of a document to belong to each topic. Let’s take an arbitrary document from our data:
 
 my_document = documents.message[17]
-my_document
+print(my_document)
 
 
 def topic_distribution(string_input):
@@ -95,8 +98,8 @@ def topic_distribution(string_input):
     return output
   
  
- 
-topic_distribution(my_document)
+print(topic_distribution(my_document))
+
 
 #As we can see, this document is more likely to belong to topic 8 with a 51% probability. It makes sense because this document
 # # is related to “war” since it contains the word “troops” and topic 8 is about war. Let’s recall topic 8:
@@ -113,11 +116,15 @@ def topic_prediction(my_document):
     topics = sorted(output,key=lambda x:x[1],reverse=True)
     return topics[0][0]
  
-topic_prediction(my_document)
+print(topic_prediction(my_document))
 
+print("----------------")
+
+#print(topic_prediction(documents.message))
 
 #That was an example of Topic Modelling with LDA. We could have used a TF-IDF instead of Bags of Words. Also, we could have applied 
 # lemmatization and/or stemming. There are many different approaches. Our goal was to provide a walk-through example and feel free to try different approaches.
+
 
 
 
@@ -139,38 +146,39 @@ from sklearn.feature_extraction.text import CountVectorizer
 from sklearn.manifold import TSNE
 import concurrent.futures
 import time
-import pyLDAvis.sklearn
-from pylab import bone, pcolor, colorbar, plot, show, rcParams, savefig
+#import pyLDAvis.sklearn
+#from pylab import bone, pcolor, colorbar, plot, show, rcParams, savefig
 import warnings
 warnings.filterwarnings('ignore')
 
-%matplotlib inline
+#%matplotlib inline
 import os
-print(os.listdir("../input"))
+#print(os.listdir("../input"))
 
 # Plotly based imports for visualization
-from plotly import tools
-import plotly.plotly as py
-from plotly.offline import init_notebook_mode, iplot
-init_notebook_mode(connected=True)
-import plotly.graph_objs as go
-import plotly.figure_factory as ff
+#from plotly import tools
+#import plotly.plotly as py
+#from plotly.offline import init_notebook_mode, iplot
+#init_notebook_mode(connected=True)
+#import plotly.graph_objs as go
+#import plotly.figure_factory as ff
 
 # spaCy based imports
 import spacy
 from spacy.lang.en.stop_words import STOP_WORDS
 from spacy.lang.en import English
-!python -m spacy download en_core_web_lg
+#!python3 -m spacy download en_core_web_lg
+
 
 
 # Loading data
-wines = pd.read_csv('../input/winemag-data_first150k.csv')
+wines = sms #pd.read_csv('../input/winemag-data_first150k.csv')
 wines.head()
 
 # Creating a spaCy object
 nlp = spacy.load('en_core_web_lg')
 
-doc = nlp(wines["description"][3])
+doc = nlp(wines["message"][3])
 spacy.displacy.render(doc, style='ent',jupyter=True)
 
 punctuations = string.punctuation
@@ -178,7 +186,7 @@ stopwords = list(STOP_WORDS)
 
 
 review = str(" ".join([i.lemma_ for i in doc]))
-
+print(review)
 
 doc = nlp(review)
 spacy.displacy.render(doc, style='ent',jupyter=True)
@@ -199,12 +207,11 @@ def spacy_tokenizer(sentence):
 
 
 tqdm.pandas()
-wines["processed_description"] = wines["description"].progress_apply(spacy_tokenizer)
-
+wines["processed_message"] = wines["message"] #wines["message"].progress_apply(spacy_tokenizer)
 
 # Creating a vectorizer
 vectorizer = CountVectorizer(min_df=5, max_df=0.9, stop_words='english', lowercase=True, token_pattern='[a-zA-Z\-][a-zA-Z\-]{2,}')
-data_vectorized = vectorizer.fit_transform(wines["processed_description"])
+data_vectorized = vectorizer.fit_transform(wines["processed_message"])
 
 
 NUM_TOPICS = 10
@@ -252,13 +259,13 @@ text = spacy_tokenizer("Aromas include tropical fruit, broom, brimstone and drie
 x = lda.transform(vectorizer.transform([text]))[0]
 print(x)
 
-pyLDAvis.enable_notebook()
-dash = pyLDAvis.sklearn.prepare(lda, data_vectorized, vectorizer, mds='tsne')
-dash
+#pyLDAvis.enable_notebook()
+#dash = pyLDAvis.sklearn.prepare(lda, data_vectorized, vectorizer, mds='tsne')
+#dash
 
 svd_2d = TruncatedSVD(n_components=2)
 data_2d = svd_2d.fit_transform(data_vectorized)
-
+'''
 trace = go.Scattergl(
     x = data_2d[:,0],
     y = data_2d[:,1],
@@ -323,7 +330,7 @@ selected_topics(bi_lda, bivectorizer)
 bi_dash = pyLDAvis.sklearn.prepare(bi_lda, bigram_vectorized, bivectorizer, mds='tsne')
 bi_dash
 
-
+'''
 
 
 
@@ -334,6 +341,7 @@ bi_dash
 
 #https://www.kaggle.com/dskswu/topic-modeling-bert-lda
 
+'''
 
 !pip install spacy-langdetect
 !pip install language-detector
@@ -357,7 +365,7 @@ bi_dash
 
 
 
-
+'''
 
 
 
