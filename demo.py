@@ -5,8 +5,6 @@ import pandas as pd
 
 #https://appliedmachinelearning.wordpress.com/2017/02/12/sentiment-analysis-using-tf-idf-weighting-pythonscikit-learn/
 
-
-
 # alternative: read file into pandas from a URL
 url = 'https://raw.githubusercontent.com/justmarkham/pycon-2016-tutorial/master/data/sms.tsv'
 sms = pd.read_table(url, header=None, names=['label', 'message'])
